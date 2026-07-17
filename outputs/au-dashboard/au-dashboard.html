@@ -1,0 +1,891 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AU dashboard</title>
+  <style>
+    :root {
+      --bg: #f7f7f4;
+      --panel: #ffffff;
+      --panel-2: #f1f3f2;
+      --ink: #111418;
+      --muted: #5e6673;
+      --line: #d6dadf;
+      --blue: #005bbb;
+      --orange: #ff6b35;
+      --green: #12805c;
+      --yellow: #f2b705;
+      --red: #c84335;
+      --shadow: 0 16px 34px rgba(17, 20, 24, 0.08);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      letter-spacing: 0;
+    }
+    button, select { font: inherit; }
+    .shell {
+      width: min(1420px, calc(100% - 48px));
+      margin: 0 auto;
+      padding: 28px 0 40px;
+    }
+    .topbar {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 24px;
+      align-items: start;
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 22px;
+    }
+    .eyebrow {
+      margin: 0 0 10px;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+    h1 {
+      margin: 0;
+      font-size: 38px;
+      line-height: 1.04;
+      max-width: 780px;
+    }
+    .meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 16px;
+    }
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      min-height: 30px;
+      padding: 5px 10px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: var(--panel);
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+      white-space: normal;
+    }
+    .controls {
+      display: grid;
+      gap: 12px;
+      justify-items: end;
+    }
+    .select-wrap {
+      display: grid;
+      gap: 6px;
+      min-width: 210px;
+    }
+    .select-wrap label {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+    select {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: var(--panel);
+      color: var(--ink);
+      padding: 11px 12px;
+      min-height: 44px;
+    }
+    .segment {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(90px, 1fr));
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      overflow: hidden;
+      background: var(--panel);
+      min-height: 44px;
+    }
+    .segment button {
+      border: 0;
+      border-right: 1px solid var(--line);
+      background: transparent;
+      color: var(--muted);
+      padding: 10px 12px;
+      font-size: 14px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+    .segment button:last-child { border-right: 0; }
+    .segment button.active {
+      background: var(--ink);
+      color: #ffffff;
+    }
+    .status {
+      margin: 18px 0 0;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.45;
+      max-width: 900px;
+    }
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 14px;
+      margin: 22px 0;
+    }
+    .kpi {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 16px;
+      min-height: 146px;
+      display: grid;
+      align-content: space-between;
+      box-shadow: var(--shadow);
+    }
+    .kpi .label {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 850;
+      text-transform: uppercase;
+      line-height: 1.25;
+    }
+    .kpi .value {
+      margin: 12px 0 8px;
+      font-size: 30px;
+      line-height: 1;
+      font-weight: 900;
+      overflow-wrap: anywhere;
+    }
+    .kpi .note {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.35;
+    }
+    .delta {
+      display: inline-flex;
+      width: fit-content;
+      max-width: 100%;
+      border-radius: 6px;
+      padding: 4px 7px;
+      font-size: 12px;
+      font-weight: 850;
+      line-height: 1.15;
+      white-space: normal;
+    }
+    .delta.up { background: rgba(18, 128, 92, 0.12); color: var(--green); }
+    .delta.down { background: rgba(200, 67, 53, 0.12); color: var(--red); }
+    .delta.neutral { background: var(--panel-2); color: var(--muted); }
+    .grid-2 {
+      display: grid;
+      grid-template-columns: minmax(0, 1.9fr) minmax(320px, 0.9fr);
+      gap: 16px;
+      align-items: start;
+    }
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+    }
+    .panel-head {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 16px 18px 0;
+    }
+    .panel h2 {
+      margin: 0;
+      font-size: 20px;
+      line-height: 1.18;
+    }
+    .panel .sub {
+      margin: 5px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.4;
+    }
+    .chart-wrap {
+      padding: 8px 12px 16px;
+      min-height: 420px;
+    }
+    svg {
+      display: block;
+      width: 100%;
+      height: auto;
+      overflow: visible;
+    }
+    .axis text {
+      fill: var(--muted);
+      font-size: 11px;
+      font-weight: 700;
+    }
+    .gridline {
+      stroke: #e7e9ec;
+      stroke-width: 1;
+      shape-rendering: crispEdges;
+    }
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      padding: 0 18px 14px;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 750;
+    }
+    .legend span {
+      display: inline-flex;
+      gap: 7px;
+      align-items: center;
+    }
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 3px;
+      background: var(--blue);
+      flex: 0 0 auto;
+    }
+    .dot.orange { background: var(--orange); }
+    .dot.green { background: var(--green); }
+    .dot.yellow { background: var(--yellow); }
+    .side-stack {
+      display: grid;
+      gap: 16px;
+    }
+    .info-list {
+      display: grid;
+      gap: 12px;
+      padding: 16px 18px 18px;
+    }
+    .info-row {
+      border-top: 1px solid var(--line);
+      padding-top: 12px;
+    }
+    .info-row:first-child {
+      border-top: 0;
+      padding-top: 0;
+    }
+    .info-row b {
+      display: block;
+      font-size: 15px;
+      line-height: 1.25;
+      margin-bottom: 4px;
+    }
+    .info-row span {
+      display: block;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.42;
+    }
+    .grid-bottom {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 16px;
+      margin-top: 16px;
+    }
+    .coverage-chart {
+      padding: 8px 12px 16px;
+      min-height: 280px;
+    }
+    .table-panel {
+      margin-top: 16px;
+      overflow: hidden;
+    }
+    .table-scroll {
+      overflow-x: auto;
+      padding: 8px 18px 18px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 880px;
+      font-size: 13px;
+    }
+    th, td {
+      padding: 10px 8px;
+      border-bottom: 1px solid var(--line);
+      text-align: right;
+      vertical-align: top;
+    }
+    th {
+      color: var(--muted);
+      font-size: 12px;
+      text-transform: uppercase;
+      font-weight: 850;
+      background: #fafafa;
+      position: sticky;
+      top: 0;
+      z-index: 1;
+    }
+    th:first-child, td:first-child {
+      text-align: left;
+      font-weight: 800;
+    }
+    td.comment {
+      text-align: left;
+      max-width: 280px;
+      overflow-wrap: anywhere;
+      color: var(--muted);
+    }
+    .footnote {
+      margin-top: 16px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+    @media (max-width: 1120px) {
+      .shell { width: min(100% - 32px, 980px); }
+      .topbar, .grid-2, .grid-bottom {
+        grid-template-columns: 1fr;
+      }
+      .controls { justify-items: stretch; }
+      .kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .kpi:last-child { grid-column: 1 / -1; }
+    }
+    @media (max-width: 640px) {
+      .shell {
+        width: calc(100% - 24px);
+        padding-top: 18px;
+      }
+      h1 { font-size: 29px; }
+      .kpi-grid { grid-template-columns: 1fr; }
+      .kpi:last-child { grid-column: auto; }
+      .segment {
+        grid-template-columns: 1fr;
+      }
+      .segment button {
+        border-right: 0;
+        border-bottom: 1px solid var(--line);
+      }
+      .segment button:last-child { border-bottom: 0; }
+      .panel-head {
+        display: grid;
+      }
+      .chart-wrap { min-height: 330px; }
+      .kpi .value { font-size: 28px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">AU dashboard</p>
+        <h1>Активность пользователей AU</h1>
+        <div class="meta">
+          <span class="pill">Источник: AU.xlsx · Лист1</span>
+          <span class="pill">Период: июн 2020 - дек 2025</span>
+          <span class="pill">Хиты обновлены до фев 2025</span>
+        </div>
+        <p class="status" id="statusLine"></p>
+      </div>
+      <div class="controls" aria-label="Фильтры дашборда">
+        <div class="select-wrap">
+          <label for="yearFilter">Период</label>
+          <select id="yearFilter"></select>
+        </div>
+        <div class="segment" role="tablist" aria-label="Режим графика">
+          <button type="button" class="active" data-mode="users">Пользователи</button>
+          <button type="button" data-mode="coverage">Охват</button>
+          <button type="button" data-mode="hits">Хиты</button>
+        </div>
+      </div>
+    </header>
+
+    <section class="kpi-grid" id="kpiGrid" aria-label="Ключевые показатели"></section>
+
+    <section class="grid-2">
+      <article class="panel">
+        <div class="panel-head">
+          <div>
+            <h2 id="mainChartTitle">Динамика</h2>
+            <p class="sub" id="mainChartSub"></p>
+          </div>
+        </div>
+        <div class="chart-wrap">
+          <svg id="mainChart" viewBox="0 0 920 390" role="img" aria-label="Главный график"></svg>
+        </div>
+        <div class="legend" id="mainLegend"></div>
+      </article>
+
+      <aside class="side-stack">
+        <article class="panel">
+          <div class="panel-head">
+            <div>
+              <h2>Выводы</h2>
+              <p class="sub">Автоматически собраны из последнего доступного периода.</p>
+            </div>
+          </div>
+          <div class="info-list" id="insights"></div>
+        </article>
+        <article class="panel">
+          <div class="panel-head">
+            <div>
+              <h2>Качество данных</h2>
+              <p class="sub">Где нужно быть осторожнее с интерпретацией.</p>
+            </div>
+          </div>
+          <div class="info-list" id="quality"></div>
+        </article>
+      </aside>
+    </section>
+
+    <section class="grid-bottom">
+      <article class="panel">
+        <div class="panel-head">
+          <div>
+            <h2>Охват по годам</h2>
+            <p class="sub">Средний MAU и DAU в процентах от численности сотрудников.</p>
+          </div>
+        </div>
+        <div class="coverage-chart">
+          <svg id="coverageChart" viewBox="0 0 700 260" role="img" aria-label="Охват по годам"></svg>
+        </div>
+        <div class="legend">
+          <span><i class="dot green"></i>MAU / сотрудники</span>
+          <span><i class="dot orange"></i>DAU / сотрудники</span>
+        </div>
+      </article>
+
+      <article class="panel">
+        <div class="panel-head">
+          <div>
+            <h2>Что делать дальше</h2>
+            <p class="sub">Минимальный набор шагов для управленческого контура.</p>
+          </div>
+        </div>
+        <div class="info-list" id="actions"></div>
+      </article>
+    </section>
+
+    <section class="panel table-panel">
+      <div class="panel-head">
+        <div>
+          <h2>Месячная детализация</h2>
+          <p class="sub" id="tableSub"></p>
+        </div>
+      </div>
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>Месяц</th>
+              <th>MAU</th>
+              <th>DAU</th>
+              <th>DAU %</th>
+              <th>Сотрудники</th>
+              <th>MAU %</th>
+              <th>Хиты</th>
+              <th>Активность</th>
+              <th>Комментарий</th>
+            </tr>
+          </thead>
+          <tbody id="dataTable"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <p class="footnote">Карта не строится: в исходном файле нет географических измерений. Пропуски в источнике показаны как "н/д" и не подменяются нулями.</p>
+  </main>
+
+  <script>
+    const DATA = [{"year": 2020, "month": "Июнь", "monthNumber": 6, "monthShort": "июн", "date": "2020-06-01", "label": "июн 2020", "mau": 13882.0, "hits": null, "activity": null, "dau": null, "dauPct": null, "employees": null, "mauPct": null, "comment": null}, {"year": 2020, "month": "Июль", "monthNumber": 7, "monthShort": "июл", "date": "2020-07-01", "label": "июл 2020", "mau": 14401.0, "hits": 447079.0, "activity": 31.044996875217, "dau": null, "dauPct": null, "employees": null, "mauPct": null, "comment": null}, {"year": 2020, "month": "Август", "monthNumber": 8, "monthShort": "авг", "date": "2020-08-01", "label": "авг 2020", "mau": 14893.0, "hits": 392493.0, "activity": 26.35419324514873, "dau": null, "dauPct": null, "employees": null, "mauPct": null, "comment": null}, {"year": 2020, "month": "Сентябрь", "monthNumber": 9, "monthShort": "сен", "date": "2020-09-01", "label": "сен 2020", "mau": 15289.0, "hits": 499289.0, "activity": 32.65674668062005, "dau": null, "dauPct": null, "employees": null, "mauPct": null, "comment": null}, {"year": 2020, "month": "Октябрь", "monthNumber": 10, "monthShort": "окт", "date": "2020-10-01", "label": "окт 2020", "mau": 15676.0, "hits": 667909.0, "activity": 42.607106404695074, "dau": null, "dauPct": null, "employees": null, "mauPct": null, "comment": null}, {"year": 2020, "month": "Ноябрь", "monthNumber": 11, "monthShort": "ноя", "date": "2020-11-01", "label": "ноя 2020", "mau": 14462.0, "hits": 1021632.0, "activity": 70.64251140921034, "dau": null, "dauPct": null, "employees": null, "mauPct": null, "comment": null}, {"year": 2020, "month": "Декабрь", "monthNumber": 12, "monthShort": "дек", "date": "2020-12-01", "label": "дек 2020", "mau": 12636.0, "hits": 1010474.0, "activity": 79.9678695789807, "dau": null, "dauPct": null, "employees": null, "mauPct": null, "comment": null}, {"year": 2021, "month": "Январь", "monthNumber": 1, "monthShort": "янв", "date": "2021-01-01", "label": "янв 2021", "mau": 10095.0, "hits": 864829.0, "activity": 85.66904408122834, "dau": null, "dauPct": null, "employees": 15256.0, "mauPct": 66.17068694284217, "comment": null}, {"year": 2021, "month": "Февраль", "monthNumber": 2, "monthShort": "фев", "date": "2021-02-01", "label": "фев 2021", "mau": 15687.0, "hits": 906121.0, "activity": 57.76254223242175, "dau": null, "dauPct": null, "employees": 15256.0, "mauPct": 102.82511798636602, "comment": null}, {"year": 2021, "month": "Март", "monthNumber": 3, "monthShort": "мар", "date": "2021-03-01", "label": "мар 2021", "mau": 13010.0, "hits": 973092.0, "activity": 74.7956956187548, "dau": null, "dauPct": null, "employees": 15256.0, "mauPct": 85.27792343995804, "comment": null}, {"year": 2021, "month": "Апрель", "monthNumber": 4, "monthShort": "апр", "date": "2021-04-01", "label": "апр 2021", "mau": 11657.0, "hits": 889262.0, "activity": 76.2856652655057, "dau": null, "dauPct": null, "employees": 15256.0, "mauPct": 76.4092815941269, "comment": null}, {"year": 2021, "month": "Май", "monthNumber": 5, "monthShort": "май", "date": "2021-05-01", "label": "май 2021", "mau": 11458.0, "hits": 2971325.0, "activity": 259.32318031069997, "dau": null, "dauPct": null, "employees": 15505.0, "mauPct": 73.89874234118027, "comment": "Детский конкурс с лайком фоток"}, {"year": 2021, "month": "Июнь", "monthNumber": 6, "monthShort": "июн", "date": "2021-06-01", "label": "июн 2021", "mau": 11676.0, "hits": 920354.0, "activity": 78.82442617334704, "dau": null, "dauPct": null, "employees": 15505.0, "mauPct": 75.30474040632055, "comment": null}, {"year": 2021, "month": "Июль", "monthNumber": 7, "monthShort": "июл", "date": "2021-07-01", "label": "июл 2021", "mau": 11899.0, "hits": 1043861.0, "activity": 87.72678376334146, "dau": null, "dauPct": null, "employees": 15140.0, "mauPct": 78.59313077939234, "comment": null}, {"year": 2021, "month": "Август", "monthNumber": 8, "monthShort": "авг", "date": "2021-08-01", "label": "авг 2021", "mau": 11623.0, "hits": 955809.0, "activity": 82.23427686483696, "dau": null, "dauPct": null, "employees": 15140.0, "mauPct": 76.77014531043594, "comment": null}, {"year": 2021, "month": "Сентябрь", "monthNumber": 9, "monthShort": "сен", "date": "2021-09-01", "label": "сен 2021", "mau": 13445.0, "hits": 1853633.0, "activity": 137.8678319077724, "dau": null, "dauPct": null, "employees": 15843.0, "mauPct": 84.86397778198574, "comment": null}, {"year": 2021, "month": "Октябрь", "monthNumber": 10, "monthShort": "окт", "date": "2021-10-01", "label": "окт 2021", "mau": 13281.0, "hits": 2038887.0, "activity": 153.5190874181161, "dau": null, "dauPct": null, "employees": 15951.0, "mauPct": 83.26123753996615, "comment": null}, {"year": 2021, "month": "Ноябрь", "monthNumber": 11, "monthShort": "ноя", "date": "2021-11-01", "label": "ноя 2021", "mau": 13860.0, "hits": 2588978.0, "activity": 186.7949494949495, "dau": null, "dauPct": null, "employees": 16105.0, "mauPct": 86.06022974231605, "comment": null}, {"year": 2021, "month": "Декабрь", "monthNumber": 12, "monthShort": "дек", "date": "2021-12-01", "label": "дек 2021", "mau": 12370.0, "hits": 2025264.0, "activity": 163.72384801940177, "dau": null, "dauPct": null, "employees": 16105.0, "mauPct": 76.80844458242781, "comment": null}, {"year": 2022, "month": "Январь", "monthNumber": 1, "monthShort": "янв", "date": "2022-01-01", "label": "янв 2022", "mau": 15057.0, "hits": 1690176.0, "activity": 112.25184299661287, "dau": null, "dauPct": null, "employees": 16105.0, "mauPct": 93.49270412915244, "comment": null}, {"year": 2022, "month": "Февраль", "monthNumber": 2, "monthShort": "фев", "date": "2022-02-01", "label": "фев 2022", "mau": 15924.0, "hits": 2268041.0, "activity": 142.42910072846018, "dau": null, "dauPct": null, "employees": 16301.0, "mauPct": 97.68725845040181, "comment": null}, {"year": 2022, "month": "Март", "monthNumber": 3, "monthShort": "мар", "date": "2022-03-01", "label": "мар 2022", "mau": 15837.0, "hits": 2942032.0, "activity": 185.7695270568921, "dau": 4757.0, "dauPct": 28.990188311292584, "employees": 16409.0, "mauPct": 96.51410811140228, "comment": null}, {"year": 2022, "month": "Апрель", "monthNumber": 4, "monthShort": "апр", "date": "2022-04-01", "label": "апр 2022", "mau": 15331.0, "hits": 2712233.0, "activity": 176.9116822125106, "dau": 4239.0, "dauPct": 25.79879496074493, "employees": 16431.0, "mauPct": 93.30533747185198, "comment": null}, {"year": 2022, "month": "Май", "monthNumber": 5, "monthShort": "май", "date": "2022-05-01", "label": "май 2022", "mau": 14813.0, "hits": 2328532.0, "activity": 157.19516640788495, "dau": 3914.0, "dauPct": 23.63241154449946, "employees": 16562.0, "mauPct": 89.43968119792295, "comment": null}, {"year": 2022, "month": "Июнь", "monthNumber": 6, "monthShort": "июн", "date": "2022-06-01", "label": "июн 2022", "mau": 14742.0, "hits": 1996815.0, "activity": 135.45075295075296, "dau": 3487.0, "dauPct": 20.62825366777094, "employees": 16904.0, "mauPct": 87.210127780407, "comment": null}, {"year": 2022, "month": "Июль", "monthNumber": 7, "monthShort": "июл", "date": "2022-07-01", "label": "июл 2022", "mau": 15328.0, "hits": 3118554.0, "activity": 203.45472338204593, "dau": 4024.0, "dauPct": 23.25742688706508, "employees": 17302.0, "mauPct": 88.5909143451624, "comment": null}, {"year": 2022, "month": "Август", "monthNumber": 8, "monthShort": "авг", "date": "2022-08-01", "label": "авг 2022", "mau": 15255.0, "hits": 2950084.0, "activity": 193.3847263192396, "dau": 3520.0, "dauPct": 19.907250311050785, "employees": 17682.0, "mauPct": 86.27417712928401, "comment": null}, {"year": 2022, "month": "Сентябрь", "monthNumber": 9, "monthShort": "сен", "date": "2022-09-01", "label": "сен 2022", "mau": 14701.0, "hits": 1875683.0, "activity": 127.58880348275628, "dau": 3220.0, "dauPct": 17.857142857142858, "employees": 18032.0, "mauPct": 81.52728482697427, "comment": null}, {"year": 2022, "month": "Октябрь", "monthNumber": 10, "monthShort": "окт", "date": "2022-10-01", "label": "окт 2022", "mau": 16321.0, "hits": 2890677.0, "activity": 177.11396360517125, "dau": 4799.0, "dauPct": 25.926526202052944, "employees": 18510.0, "mauPct": 88.17396002160994, "comment": null}, {"year": 2022, "month": "Ноябрь", "monthNumber": 11, "monthShort": "ноя", "date": "2022-11-01", "label": "ноя 2022", "mau": 16374.0, "hits": 2734765.0, "activity": 167.0187492365946, "dau": 4567.0, "dauPct": 24.20372038793789, "employees": 18869.0, "mauPct": 86.77725369653929, "comment": null}, {"year": 2022, "month": "Декабрь", "monthNumber": 12, "monthShort": "дек", "date": "2022-12-01", "label": "дек 2022", "mau": 16733.0, "hits": 2970670.0, "activity": 177.53361620749416, "dau": 4945.0, "dauPct": 27.779338239424753, "employees": 17801.0, "mauPct": 94.00033705971575, "comment": null}, {"year": 2023, "month": "Январь", "monthNumber": 1, "monthShort": "янв", "date": "2023-01-01", "label": "янв 2023", "mau": 17057.0, "hits": 2676523.0, "activity": 156.9163979597819, "dau": 5018.0, "dauPct": 28.07743957027753, "employees": 17872.0, "mauPct": 95.43979409131603, "comment": null}, {"year": 2023, "month": "Февраль", "monthNumber": 2, "monthShort": "фев", "date": "2023-02-01", "label": "фев 2023", "mau": 17255.0, "hits": 2518673.0, "activity": 145.96771950159373, "dau": 5226.0, "dauPct": 28.634047449454826, "employees": 18251.0, "mauPct": 94.54276478001205, "comment": null}, {"year": 2023, "month": "Март", "monthNumber": 3, "monthShort": "мар", "date": "2023-03-01", "label": "мар 2023", "mau": 17793.0, "hits": 3593967.0, "activity": 201.98769178890575, "dau": 5897.0, "dauPct": 31.79147123834169, "employees": 18549.0, "mauPct": 95.92430858806405, "comment": null}, {"year": 2023, "month": "Апрель", "monthNumber": 4, "monthShort": "апр", "date": "2023-04-01", "label": "апр 2023", "mau": 17316.0, "hits": 4163022.0, "activity": 240.4147609147609, "dau": 5884.0, "dauPct": 31.0944353432331, "employees": 18923.0, "mauPct": 91.50768905564657, "comment": null}, {"year": 2023, "month": "Май", "monthNumber": 5, "monthShort": "май", "date": "2023-05-01", "label": "май 2023", "mau": 18073.0, "hits": 3435916.0, "activity": 190.11320754716982, "dau": 6148.0, "dauPct": 31.970878835153407, "employees": 19230.0, "mauPct": 93.98335933437338, "comment": null}, {"year": 2023, "month": "Июнь", "monthNumber": 6, "monthShort": "июн", "date": "2023-06-01", "label": "июн 2023", "mau": 18044.0, "hits": 3080774.0, "activity": 170.736754599867, "dau": 5470.0, "dauPct": 28.130624839290306, "employees": 19445.0, "mauPct": 92.79506299820005, "comment": null}, {"year": 2023, "month": "Июль", "monthNumber": 7, "monthShort": "июл", "date": "2023-07-01", "label": "июл 2023", "mau": 18594.0, "hits": 3492503.0, "activity": 187.8295686780682, "dau": 5849.0, "dauPct": 29.36244979919679, "employees": 19920.0, "mauPct": 93.3433734939759, "comment": null}, {"year": 2023, "month": "Август", "monthNumber": 8, "monthShort": "авг", "date": "2023-08-01", "label": "авг 2023", "mau": 18746.0, "hits": 3441872.0, "activity": 183.60567587752053, "dau": 5638.0, "dauPct": 27.777504064640095, "employees": 20297.0, "mauPct": 92.35847662216091, "comment": null}, {"year": 2023, "month": "Сентябрь", "monthNumber": 9, "monthShort": "сен", "date": "2023-09-01", "label": "сен 2023", "mau": 18993.0, "hits": 3412776.0, "activity": 179.68598957510662, "dau": 5744.0, "dauPct": 27.92551898488016, "employees": 20569.0, "mauPct": 92.33798434537411, "comment": null}, {"year": 2023, "month": "Октябрь", "monthNumber": 10, "monthShort": "окт", "date": "2023-10-01", "label": "окт 2023", "mau": 19781.0, "hits": 4169132.0, "activity": 210.76447095697893, "dau": 6780.0, "dauPct": 32.441743624096844, "employees": 20899.0, "mauPct": 94.65046174458108, "comment": null}, {"year": 2023, "month": "Ноябрь", "monthNumber": 11, "monthShort": "ноя", "date": "2023-11-01", "label": "ноя 2023", "mau": 20177.0, "hits": 3752670.0, "activity": 185.98751053179362, "dau": 7728.0, "dauPct": 36.18824631233903, "employees": 21355.0, "mauPct": 94.48372746429408, "comment": null}, {"year": 2023, "month": "Декабрь", "monthNumber": 12, "monthShort": "дек", "date": "2023-12-01", "label": "дек 2023", "mau": 20599.0, "hits": 3720189.0, "activity": 180.60046604204086, "dau": 7751.0, "dauPct": 36.079690918400594, "employees": 21483.0, "mauPct": 95.88511846576363, "comment": null}, {"year": 2024, "month": "Январь", "monthNumber": 1, "monthShort": "янв", "date": "2024-01-01", "label": "янв 2024", "mau": 20413.0, "hits": 3684237.0, "activity": 180.48483809337188, "dau": 8787.0, "dauPct": 40.29070567197029, "employees": 21809.0, "mauPct": 93.59897290109588, "comment": null}, {"year": 2024, "month": "Февраль", "monthNumber": 2, "monthShort": "фев", "date": "2024-02-01", "label": "фев 2024", "mau": 21006.0, "hits": 3832656.0, "activity": 182.4552984861468, "dau": 8793.0, "dauPct": 39.88297727581984, "employees": 22047.0, "mauPct": 95.27826915226561, "comment": null}, {"year": 2024, "month": "Март", "monthNumber": 3, "monthShort": "мар", "date": "2024-03-01", "label": "мар 2024", "mau": 21557.0, "hits": 5552826.0, "activity": 257.5880688407478, "dau": 10059.0, "dauPct": 45.21915037086986, "employees": 22245.0, "mauPct": 96.90717015059563, "comment": null}, {"year": 2024, "month": "Апрель", "monthNumber": 4, "monthShort": "апр", "date": "2024-04-01", "label": "апр 2024", "mau": 21661.0, "hits": 4913201.0, "activity": 226.82244587045844, "dau": 9199.0, "dauPct": 41.002897258747495, "employees": 22435.0, "mauPct": 96.55003342990862, "comment": null}, {"year": 2024, "month": "Май", "monthNumber": 5, "monthShort": "май", "date": "2024-05-01", "label": "май 2024", "mau": 21751.0, "hits": 4577676.0, "activity": 210.45818583053654, "dau": 9167.0, "dauPct": 40.46883277414798, "employees": 22652.0, "mauPct": 96.02242627582554, "comment": null}, {"year": 2024, "month": "Июнь", "monthNumber": 6, "monthShort": "июн", "date": "2024-06-01", "label": "июн 2024", "mau": 21462.0, "hits": 4320599.0, "activity": 201.31390364364924, "dau": 7996.0, "dauPct": 35.07632918055799, "employees": 22796.0, "mauPct": 94.14809615722056, "comment": null}, {"year": 2024, "month": "Июль", "monthNumber": 7, "monthShort": "июл", "date": "2024-07-01", "label": "июл 2024", "mau": 22081.0, "hits": 5214073.0, "activity": 236.1339160364114, "dau": 8605.0, "dauPct": 37.39515883707792, "employees": 23011.0, "mauPct": 95.9584546521229, "comment": null}, {"year": 2024, "month": "Август", "monthNumber": 8, "monthShort": "авг", "date": "2024-08-01", "label": "авг 2024", "mau": 21947.0, "hits": 5246858.0, "activity": 239.06948557889461, "dau": 8602.0, "dauPct": 37.22520339276441, "employees": 23108.0, "mauPct": 94.97576596849576, "comment": null}, {"year": 2024, "month": "Сентябрь", "monthNumber": 9, "monthShort": "сен", "date": "2024-09-01", "label": "сен 2024", "mau": 22108.0, "hits": 3744137.0, "activity": 169.3566582232676, "dau": 9038.0, "dauPct": 39.70478407942714, "employees": 22763.0, "mauPct": 97.12252339322585, "comment": null}, {"year": 2024, "month": "Октябрь", "monthNumber": 10, "monthShort": "окт", "date": "2024-10-01", "label": "окт 2024", "mau": 22892.0, "hits": 4087969.0, "activity": 178.5763148698235, "dau": 10501.0, "dauPct": 44.91445680068435, "employees": 23380.0, "mauPct": 97.91274593669803, "comment": null}, {"year": 2024, "month": "Ноябрь", "monthNumber": 11, "monthShort": "ноя", "date": "2024-11-01", "label": "ноя 2024", "mau": 22964.0, "hits": 3919481.0, "activity": 170.67936770597456, "dau": 10974.0, "dauPct": 46.93755346449957, "employees": 23380.0, "mauPct": 98.22070145423439, "comment": null}, {"year": 2024, "month": "Декабрь", "monthNumber": 12, "monthShort": "дек", "date": "2024-12-01", "label": "дек 2024", "mau": 23342.0, "hits": 4398575.0, "activity": 188.44036500728302, "dau": 13054.0, "dauPct": 54.51660054291084, "employees": 23945.0, "mauPct": 97.48172896220505, "comment": null}, {"year": 2025, "month": "Январь", "monthNumber": 1, "monthShort": "янв", "date": "2025-01-01", "label": "янв 2025", "mau": 22886.0, "hits": 3722496.0, "activity": 162.65384951498734, "dau": 13951.0, "dauPct": 58.0324459234609, "employees": 24040.0, "mauPct": 95.19966722129784, "comment": null}, {"year": 2025, "month": "Февраль", "monthNumber": 2, "monthShort": "фев", "date": "2025-02-01", "label": "фев 2025", "mau": 23077.0, "hits": 3241064.0, "activity": 140.44563851453827, "dau": 12257.0, "dauPct": 50.98585690515807, "employees": 24040.0, "mauPct": 95.99417637271215, "comment": null}, {"year": 2025, "month": "Март", "monthNumber": 3, "monthShort": "мар", "date": "2025-03-01", "label": "мар 2025", "mau": 23640.0, "hits": null, "activity": null, "dau": 13699.0, "dauPct": 56.98419301164726, "employees": 24040.0, "mauPct": 98.33610648918469, "comment": null}, {"year": 2025, "month": "Апрель", "monthNumber": 4, "monthShort": "апр", "date": "2025-04-01", "label": "апр 2025", "mau": 23600.0, "hits": null, "activity": null, "dau": 13342.0, "dauPct": 55.499168053244595, "employees": 24040.0, "mauPct": 98.16971713810317, "comment": null}, {"year": 2025, "month": "Май", "monthNumber": 5, "monthShort": "май", "date": "2025-05-01", "label": "май 2025", "mau": 23499.0, "hits": null, "activity": null, "dau": 13973.0, "dauPct": 58.12396006655574, "employees": 24040.0, "mauPct": 97.7495840266223, "comment": null}, {"year": 2025, "month": "Июнь", "monthNumber": 6, "monthShort": "июн", "date": "2025-06-01", "label": "июн 2025", "mau": 23392.0, "hits": null, "activity": null, "dau": 13010.0, "dauPct": 54.118136439267886, "employees": 24040.0, "mauPct": 97.3044925124792, "comment": null}, {"year": 2025, "month": "Июль", "monthNumber": 7, "monthShort": "июл", "date": "2025-07-01", "label": "июл 2025", "mau": 23327.0, "hits": null, "activity": null, "dau": 12888.0, "dauPct": 54.6472184531886, "employees": 23584.0, "mauPct": 98.91027815468114, "comment": null}, {"year": 2025, "month": "Август", "monthNumber": 8, "monthShort": "авг", "date": "2025-08-01", "label": "авг 2025", "mau": 23011.0, "hits": null, "activity": null, "dau": 12812.0, "dauPct": 54.32496607869742, "employees": 23584.0, "mauPct": 97.57038670284939, "comment": null}, {"year": 2025, "month": "Сентябрь", "monthNumber": 9, "monthShort": "сен", "date": "2025-09-01", "label": "сен 2025", "mau": 22913.0, "hits": null, "activity": null, "dau": 12998.0, "dauPct": 56.15657132981941, "employees": 23146.0, "mauPct": 98.99334658256286, "comment": null}, {"year": 2025, "month": "Октябрь", "monthNumber": 10, "monthShort": "окт", "date": "2025-10-01", "label": "окт 2025", "mau": 22987.0, "hits": null, "activity": null, "dau": 13683.0, "dauPct": 59.182525951557096, "employees": 23120.0, "mauPct": 99.42474048442907, "comment": null}, {"year": 2025, "month": "Ноябрь", "monthNumber": 11, "monthShort": "ноя", "date": "2025-11-01", "label": "ноя 2025", "mau": 22695.0, "hits": null, "activity": null, "dau": 13902.0, "dauPct": 60.21309771309771, "employees": 23088.0, "mauPct": 98.29781704781705, "comment": null}, {"year": 2025, "month": "Декабрь", "monthNumber": 12, "monthShort": "дек", "date": "2025-12-01", "label": "дек 2025", "mau": 22809.0, "hits": null, "activity": null, "dau": 14313.0, "dauPct": 61.99324324324324, "employees": 23088.0, "mauPct": 98.79158004158005, "comment": null}];
+    const YEARLY = [{"year": 2020, "months": 7, "avgMau": 14462.714285714286, "avgDau": null, "avgDauPct": null, "avgMauPct": null, "hitsSum": 4038876.0, "hitsMonths": 6}, {"year": 2021, "months": 12, "avgMau": 12505.083333333334, "avgDau": null, "avgDauPct": null, "avgMauPct": 80.52030487060983, "hitsSum": 18031415.0, "hitsMonths": 12}, {"year": 2022, "months": 12, "avgMau": 15534.666666666666, "avgDau": 4147.2, "avgDauPct": 23.798105336898224, "avgMauPct": 90.24942868503535, "hitsSum": 30478262.0, "hitsMonths": 12}, {"year": 2023, "months": 12, "avgMau": 18535.666666666668, "avgDau": 6094.416666666667, "avgDauPct": 30.789504248275364, "avgMauPct": 93.93767674864682, "hitsSum": 41458017.0, "hitsMonths": 12}, {"year": 2024, "months": 12, "avgMau": 21932.0, "avgDau": 9564.583333333334, "avgDauPct": 41.88622080412314, "avgMauPct": 96.18140736949114, "hitsSum": 53492288.0, "hitsMonths": 12}, {"year": 2025, "months": 12, "avgMau": 23153.0, "avgDau": 13402.333333333334, "avgDauPct": 56.6884485974115, "avgMauPct": 97.89515773119324, "hitsSum": 6963560.0, "hitsMonths": 2}];
+    const YEARS = [2020, 2021, 2022, 2023, 2024, 2025];
+    const state = { year: "all", mode: "users" };
+
+    const colors = {
+      blue: "#005bbb",
+      orange: "#ff6b35",
+      green: "#12805c",
+      yellow: "#f2b705",
+      muted: "#5e6673",
+      line: "#d6dadf",
+      grid: "#e7e9ec",
+      ink: "#111418"
+    };
+
+    function cleanNumber(value) {
+      return typeof value === "number" && Number.isFinite(value) ? value : null;
+    }
+
+    function fmtNum(value, digits = 0) {
+      const n = cleanNumber(value);
+      if (n === null) return "н/д";
+      return new Intl.NumberFormat("ru-RU", { maximumFractionDigits: digits, minimumFractionDigits: digits }).format(n);
+    }
+
+    function fmtPct(value, digits = 1) {
+      const n = cleanNumber(value);
+      if (n === null) return "н/д";
+      return `${fmtNum(n, digits)}%`;
+    }
+
+    function rowsForState() {
+      if (state.year === "all") return DATA;
+      return DATA.filter(row => String(row.year) === state.year);
+    }
+
+    function latestWith(rows, key) {
+      return [...rows].reverse().find(row => cleanNumber(row[key]) !== null) || null;
+    }
+
+    function byDate(date) {
+      return DATA.find(row => row.date === date) || null;
+    }
+
+    function shiftedDate(date, months) {
+      const parsed = new Date(`${date}T00:00:00`);
+      parsed.setMonth(parsed.getMonth() + months);
+      return `${parsed.getFullYear()}-${String(parsed.getMonth() + 1).padStart(2, "0")}-01`;
+    }
+
+    function deltaFor(row, key, months) {
+      if (!row) return null;
+      const current = cleanNumber(row[key]);
+      const previousRow = byDate(shiftedDate(row.date, months));
+      const previous = previousRow ? cleanNumber(previousRow[key]) : null;
+      if (current === null || previous === null || previous === 0) return null;
+      return (current - previous) / Math.abs(previous);
+    }
+
+    function pointDeltaFor(row, key, months) {
+      if (!row) return null;
+      const current = cleanNumber(row[key]);
+      const previousRow = byDate(shiftedDate(row.date, months));
+      const previous = previousRow ? cleanNumber(previousRow[key]) : null;
+      if (current === null || previous === null) return null;
+      return current - previous;
+    }
+
+    function deltaBadge(value, suffix = "%", pointMode = false) {
+      const n = cleanNumber(value);
+      if (n === null) return `<span class="delta neutral">нет базы</span>`;
+      const cls = n > 0 ? "up" : n < 0 ? "down" : "neutral";
+      const sign = n > 0 ? "+" : "";
+      const shown = pointMode ? fmtNum(n, 1) : fmtNum(n * 100, 1);
+      return `<span class="delta ${cls}">${sign}${shown}${suffix} г/г</span>`;
+    }
+
+    function valueLabel(row, key) {
+      const value = cleanNumber(row?.[key]);
+      return value === null ? "нет данных" : row.label;
+    }
+
+    function renderControls() {
+      const select = document.querySelector("#yearFilter");
+      select.innerHTML = `<option value="all">Все годы</option>` + YEARS.map(year => `<option value="${year}">${year}</option>`).join("");
+      select.value = state.year;
+      select.addEventListener("change", event => {
+        state.year = event.target.value;
+        renderAll();
+      });
+      document.querySelectorAll("[data-mode]").forEach(button => {
+        button.addEventListener("click", () => {
+          state.mode = button.dataset.mode;
+          document.querySelectorAll("[data-mode]").forEach(item => item.classList.toggle("active", item.dataset.mode === state.mode));
+          renderAll();
+        });
+      });
+    }
+
+    function renderStatus(rows) {
+      const start = rows[0]?.label || "";
+      const end = rows[rows.length - 1]?.label || "";
+      const hitsLatest = latestWith(rows, "hits");
+      const dauLatest = latestWith(rows, "dau");
+      const text = state.year === "all"
+        ? `Показываю весь ряд: ${start} - ${end}. DAU есть с ${DATA.find(row => cleanNumber(row.dau) !== null)?.label}, хиты и активность заполнены до ${latestWith(DATA, "hits")?.label}.`
+        : `Показываю ${state.year} год: ${rows.length} месяцев. Последний DAU: ${valueLabel(dauLatest, "dau")}, последние хиты: ${valueLabel(hitsLatest, "hits")}.`;
+      document.querySelector("#statusLine").textContent = text;
+    }
+
+    function renderKpis(rows) {
+      const mauRow = latestWith(rows, "mau");
+      const dauRow = latestWith(rows, "dau");
+      const dauPctRow = latestWith(rows, "dauPct");
+      const mauPctRow = latestWith(rows, "mauPct");
+      const hitsRow = latestWith(rows, "hits");
+      const items = [
+        {
+          label: "MAU",
+          value: fmtNum(mauRow?.mau),
+          note: `${valueLabel(mauRow, "mau")} · активная месячная аудитория`,
+          badge: deltaBadge(deltaFor(mauRow, "mau", -12))
+        },
+        {
+          label: "DAU",
+          value: fmtNum(dauRow?.dau),
+          note: `${valueLabel(dauRow, "dau")} · ежедневная аудитория`,
+          badge: deltaBadge(deltaFor(dauRow, "dau", -12))
+        },
+        {
+          label: "DAU / сотрудники",
+          value: fmtPct(dauPctRow?.dauPct),
+          note: `${valueLabel(dauPctRow, "dauPct")} · глубина ежедневного использования`,
+          badge: deltaBadge(pointDeltaFor(dauPctRow, "dauPct", -12), " п.п. г/г", true)
+        },
+        {
+          label: "MAU / сотрудники",
+          value: fmtPct(mauPctRow?.mauPct),
+          note: `${valueLabel(mauPctRow, "mauPct")} · почти полный месячный охват`,
+          badge: deltaBadge(pointDeltaFor(mauPctRow, "mauPct", -12), " п.п. г/г", true)
+        },
+        {
+          label: "Хиты",
+          value: fmtNum(hitsRow?.hits),
+          note: `${valueLabel(hitsRow, "hits")} · активность: ${fmtNum(hitsRow?.activity, 1)}`,
+          badge: deltaBadge(deltaFor(hitsRow, "hits", -12))
+        }
+      ];
+      document.querySelector("#kpiGrid").innerHTML = items.map(item => `
+        <article class="kpi">
+          <div>
+            <div class="label">${item.label}</div>
+            <div class="value">${item.value}</div>
+            ${item.badge}
+          </div>
+          <div class="note">${item.note}</div>
+        </article>
+      `).join("");
+    }
+
+    function scaleLinear(domainMin, domainMax, rangeMin, rangeMax) {
+      const span = domainMax - domainMin || 1;
+      return value => rangeMax - ((value - domainMin) / span) * (rangeMax - rangeMin);
+    }
+
+    function niceMax(values, fallback = 10) {
+      const max = Math.max(...values.filter(value => cleanNumber(value) !== null), fallback);
+      const pow = Math.pow(10, Math.floor(Math.log10(max)));
+      return Math.ceil(max / pow) * pow;
+    }
+
+    function labelTicks(max, pct = false) {
+      return [0, max * 0.25, max * 0.5, max * 0.75, max].map(value => pct ? fmtPct(value, 0) : fmtNum(value));
+    }
+
+    function linePath(rows, key, xScale, yScale) {
+      let path = "";
+      rows.forEach((row, index) => {
+        const value = cleanNumber(row[key]);
+        if (value === null) return;
+        const x = xScale(index);
+        const y = yScale(value);
+        path += `${path ? "L" : "M"}${x.toFixed(2)},${y.toFixed(2)}`;
+      });
+      return path;
+    }
+
+    function renderMainChart(rows) {
+      const svg = document.querySelector("#mainChart");
+      const legend = document.querySelector("#mainLegend");
+      const title = document.querySelector("#mainChartTitle");
+      const sub = document.querySelector("#mainChartSub");
+      const width = 920;
+      const height = 390;
+      const pad = { left: 64, right: 28, top: 26, bottom: 52 };
+      const plotW = width - pad.left - pad.right;
+      const plotH = height - pad.top - pad.bottom;
+      const xScale = index => pad.left + (rows.length <= 1 ? 0 : (index / (rows.length - 1)) * plotW);
+
+      let body = "";
+      const xTicks = rows.map((row, index) => ({ row, index })).filter((_, index) => {
+        const step = rows.length > 36 ? 12 : rows.length > 16 ? 4 : 2;
+        return index % step === 0 || index === rows.length - 1;
+      });
+
+      if (state.mode === "hits") {
+        title.textContent = "Хиты";
+        sub.textContent = "После февраля 2025 в источнике нет значений, поэтому хвост ряда оставлен пустым.";
+        const max = niceMax(rows.map(row => row.hits), 1000000);
+        const yScale = scaleLinear(0, max, pad.top, pad.top + plotH);
+        [0, 0.25, 0.5, 0.75, 1].forEach(tick => {
+          const y = pad.top + plotH * tick;
+          body += `<line class="gridline" x1="${pad.left}" y1="${y}" x2="${width - pad.right}" y2="${y}"></line>`;
+        });
+        labelTicks(max).forEach((label, index) => {
+          const y = pad.top + plotH - (plotH * index / 4);
+          body += `<text x="${pad.left - 10}" y="${y + 4}" text-anchor="end" class="axis">${label}</text>`;
+        });
+        const barWidth = Math.max(4, Math.min(16, plotW / Math.max(rows.length, 1) * 0.58));
+        rows.forEach((row, index) => {
+          const value = cleanNumber(row.hits);
+          if (value === null) return;
+          const x = xScale(index) - barWidth / 2;
+          const y = yScale(value);
+          body += `<rect x="${x.toFixed(2)}" y="${y.toFixed(2)}" width="${barWidth.toFixed(2)}" height="${(pad.top + plotH - y).toFixed(2)}" fill="${colors.blue}" opacity="0.82"></rect>`;
+        });
+        legend.innerHTML = `<span><i class="dot"></i>Хиты</span><span><i class="dot yellow"></i>Активность показана в KPI и таблице</span>`;
+      } else {
+        const isCoverage = state.mode === "coverage";
+        title.textContent = isCoverage ? "Охват аудитории" : "Пользователи";
+        sub.textContent = isCoverage ? "Процент сотрудников, которые используют AU в месяц и в день." : "MAU доступен за весь период, DAU начинается с марта 2022.";
+        const series = isCoverage
+          ? [
+              { key: "mauPct", label: "MAU / сотрудники", color: colors.green },
+              { key: "dauPct", label: "DAU / сотрудники", color: colors.orange }
+            ]
+          : [
+              { key: "mau", label: "MAU", color: colors.blue },
+              { key: "dau", label: "DAU", color: colors.orange }
+            ];
+        const values = series.flatMap(item => rows.map(row => row[item.key])).filter(value => cleanNumber(value) !== null);
+        const max = isCoverage ? Math.max(100, niceMax(values, 100)) : niceMax(values, 10000);
+        const yScale = scaleLinear(0, max, pad.top, pad.top + plotH);
+        [0, 0.25, 0.5, 0.75, 1].forEach(tick => {
+          const y = pad.top + plotH * tick;
+          body += `<line class="gridline" x1="${pad.left}" y1="${y}" x2="${width - pad.right}" y2="${y}"></line>`;
+        });
+        labelTicks(max, isCoverage).forEach((label, index) => {
+          const y = pad.top + plotH - (plotH * index / 4);
+          body += `<text x="${pad.left - 10}" y="${y + 4}" text-anchor="end" class="axis">${label}</text>`;
+        });
+        series.forEach(item => {
+          const d = linePath(rows, item.key, xScale, yScale);
+          if (d) body += `<path d="${d}" fill="none" stroke="${item.color}" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"></path>`;
+          rows.forEach((row, index) => {
+            const value = cleanNumber(row[item.key]);
+            if (value === null) return;
+            const x = xScale(index);
+            const y = yScale(value);
+            body += `<circle cx="${x.toFixed(2)}" cy="${y.toFixed(2)}" r="3.4" fill="${item.color}"></circle>`;
+          });
+        });
+        legend.innerHTML = series.map((item, index) => `<span><i class="dot ${index === 1 ? "orange" : isCoverage ? "green" : ""}"></i>${item.label}</span>`).join("");
+      }
+
+      xTicks.forEach(({ row, index }) => {
+        const x = xScale(index);
+        body += `<text x="${x}" y="${height - 18}" text-anchor="middle" class="axis">${row.monthShort} ${String(row.year).slice(2)}</text>`;
+      });
+      body += `<line x1="${pad.left}" y1="${pad.top + plotH}" x2="${width - pad.right}" y2="${pad.top + plotH}" stroke="${colors.line}"></line>`;
+      svg.innerHTML = body;
+    }
+
+    function renderCoverageChart() {
+      const svg = document.querySelector("#coverageChart");
+      const rows = YEARLY;
+      const width = 700;
+      const height = 260;
+      const pad = { left: 48, right: 24, top: 18, bottom: 42 };
+      const plotW = width - pad.left - pad.right;
+      const plotH = height - pad.top - pad.bottom;
+      const max = 100;
+      const yScale = scaleLinear(0, max, pad.top, pad.top + plotH);
+      const group = plotW / rows.length;
+      const barW = Math.max(14, group * 0.26);
+      let body = "";
+      [0, 25, 50, 75, 100].forEach(value => {
+        const y = yScale(value);
+        body += `<line class="gridline" x1="${pad.left}" y1="${y}" x2="${width - pad.right}" y2="${y}"></line>`;
+        body += `<text x="${pad.left - 9}" y="${y + 4}" text-anchor="end" class="axis">${value}%</text>`;
+      });
+      rows.forEach((row, index) => {
+        const center = pad.left + group * index + group / 2;
+        const values = [
+          { key: "avgMauPct", color: colors.green, offset: -barW * 0.6 },
+          { key: "avgDauPct", color: colors.orange, offset: barW * 0.6 }
+        ];
+        values.forEach(item => {
+          const value = cleanNumber(row[item.key]);
+          if (value === null) return;
+          const y = yScale(value);
+          body += `<rect x="${(center + item.offset - barW / 2).toFixed(2)}" y="${y.toFixed(2)}" width="${barW.toFixed(2)}" height="${(pad.top + plotH - y).toFixed(2)}" fill="${item.color}" rx="2"></rect>`;
+        });
+        body += `<text x="${center}" y="${height - 17}" text-anchor="middle" class="axis">${row.year}</text>`;
+      });
+      body += `<line x1="${pad.left}" y1="${pad.top + plotH}" x2="${width - pad.right}" y2="${pad.top + plotH}" stroke="${colors.line}"></line>`;
+      svg.innerHTML = body;
+    }
+
+    function renderInsights(rows) {
+      const latestMau = latestWith(rows, "mau");
+      const latestDau = latestWith(rows, "dau");
+      const latestDauPct = latestWith(rows, "dauPct");
+      const latestMauPct = latestWith(rows, "mauPct");
+      const latestHits = latestWith(rows, "hits");
+      const items = [
+        [
+          "Месячный охват близок к потолку",
+          `${latestMauPct?.label || "Последний период"}: ${fmtPct(latestMauPct?.mauPct)} сотрудников заходили в AU за месяц. Это зона удержания, а не первичного внедрения.`
+        ],
+        [
+          "Ежедневное использование растет быстрее",
+          `${latestDau?.label || "Последний период"}: DAU ${fmtNum(latestDau?.dau)}; год к году ${deltaBadge(deltaFor(latestDau, "dau", -12)).replace(/<[^>]*>/g, "")}.`
+        ],
+        [
+          "Главная аналитическая дырка - хиты",
+          `Хиты и активность в источнике заканчиваются на ${latestHits?.label || "н/д"}. Для свежего операционного дашборда этот ряд нужно обновить.`
+        ],
+        [
+          "DAU уже стал управленческой метрикой",
+          `Последняя доля DAU: ${fmtPct(latestDauPct?.dauPct)}. Ее удобно использовать как индикатор регулярности, а MAU - как индикатор охвата.`
+        ]
+      ];
+      document.querySelector("#insights").innerHTML = items.map(([title, text]) => `<div class="info-row"><b>${title}</b><span>${text}</span></div>`).join("");
+    }
+
+    function renderQuality(rows) {
+      const allHits = DATA.filter(row => cleanNumber(row.hits) !== null);
+      const allDau = DATA.filter(row => cleanNumber(row.dau) !== null);
+      const allEmployees = DATA.filter(row => cleanNumber(row.employees) !== null);
+      const comments = DATA.filter(row => row.comment);
+      const items = [
+        ["DAU", `Заполнен с ${allDau[0]?.label} по ${allDau[allDau.length - 1]?.label}; ранние годы сравнивать по DAU нельзя.`],
+        ["Хиты и активность", `Заполнены за ${allHits.length} месяцев из ${DATA.length}; последний месяц: ${allHits[allHits.length - 1]?.label}.`],
+        ["Сотрудники", `Численность есть за ${allEmployees.length} месяцев; проценты MAU/DAU строятся только там, где она заполнена.`],
+        ["Комментарии", `${comments.length} отмеченное событие: ${comments[0]?.label || "н/д"}. Для объяснения пиков стоит вести комментарии регулярно.`]
+      ];
+      document.querySelector("#quality").innerHTML = items.map(([title, text]) => `<div class="info-row"><b>${title}</b><span>${text}</span></div>`).join("");
+    }
+
+    function renderActions(rows) {
+      const items = [
+        ["Обновить хиты после февраля 2025", "Иначе верхний график пользователей актуален, а блок активности остается историческим."],
+        ["Задать целевой коридор DAU", "Для зрелого продукта логичнее управлять не MAU, а ежедневной регулярностью и удержанием."],
+        ["Добавлять причины всплесков", "Сейчас в данных почти нет комментариев, поэтому пики сложно объяснять в презентации или штабе."],
+        ["Разнести аудитории, если появятся сегменты", "Следующий полезный слой: подразделения, роли или регионы. Тогда можно строить карту или матрицу вовлеченности."]
+      ];
+      document.querySelector("#actions").innerHTML = items.map(([title, text]) => `<div class="info-row"><b>${title}</b><span>${text}</span></div>`).join("");
+    }
+
+    function renderTable(rows) {
+      const visible = [...rows].reverse();
+      document.querySelector("#tableSub").textContent = `${visible.length} строк в выбранном периоде`;
+      document.querySelector("#dataTable").innerHTML = visible.map(row => `
+        <tr>
+          <td>${row.label}</td>
+          <td>${fmtNum(row.mau)}</td>
+          <td>${fmtNum(row.dau)}</td>
+          <td>${fmtPct(row.dauPct)}</td>
+          <td>${fmtNum(row.employees)}</td>
+          <td>${fmtPct(row.mauPct)}</td>
+          <td>${fmtNum(row.hits)}</td>
+          <td>${fmtNum(row.activity, 1)}</td>
+          <td class="comment">${row.comment || "н/д"}</td>
+        </tr>
+      `).join("");
+    }
+
+    function renderAll() {
+      const rows = rowsForState();
+      renderStatus(rows);
+      renderKpis(rows);
+      renderMainChart(rows);
+      renderCoverageChart();
+      renderInsights(rows);
+      renderQuality(rows);
+      renderActions(rows);
+      renderTable(rows);
+    }
+
+    renderControls();
+    renderAll();
+  </script>
+</body>
+</html>
