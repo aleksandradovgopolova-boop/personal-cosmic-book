@@ -76,27 +76,7 @@ def get_chart(
 ) -> Dict[str, Any]:
     """Return a normalized chart JSON for the product pipeline."""
 
-    subject = _build_subject(
-        name=name,
-        year=year,
-        month=month,
-        day=day,
-        hour=hour,
-        minute=minute,
-        city=city,
-        country=country,
-        lat=lat,
-        lng=lng,
-        timezone=timezone,
-    )
-
-    bodies = {planet: _body(subject, planet) for planet in PLANETS if _has(subject, planet)}
-    houses = {
-        "asc": _angle(subject, "first_house"),
-        "mc": _angle(subject, "tenth_house"),
-    }
-
-    return {
+    chart: Dict[str, Any] = {
         "subject": {
             "name": name,
             "date": f"{year:04d}-{month:02d}-{day:02d}",
@@ -105,12 +85,39 @@ def get_chart(
             "country": country,
         },
         "input_hash": _input_hash(year, month, day, hour, minute, city, country),
-        **bodies,
-        **houses,
-        "aspects": _aspects(subject),
         "numerology": _numerology(year, month, day, name),
         "saju": _saju(year, month, day, hour),
     }
+
+    # Numerology and Saju are always available (computed from the date).
+    # Astrology needs kerykeion plus a resolvable birth location, so it may be
+    # unavailable in some environments — degrade gracefully instead of failing.
+    try:
+        subject = _build_subject(
+            name=name,
+            year=year,
+            month=month,
+            day=day,
+            hour=hour,
+            minute=minute,
+            city=city,
+            country=country,
+            lat=lat,
+            lng=lng,
+            timezone=timezone,
+        )
+
+        bodies = {planet: _body(subject, planet) for planet in PLANETS if _has(subject, planet)}
+        chart.update(bodies)
+        chart["asc"] = _angle(subject, "first_house")
+        chart["mc"] = _angle(subject, "tenth_house")
+        chart["aspects"] = _aspects(subject)
+        chart["astrology_available"] = True
+    except Exception as exc:  # noqa: BLE001 - report, don't crash the endpoint
+        chart["astrology_available"] = False
+        chart["astrology_error"] = str(exc)
+
+    return chart
 
 
 def chart_from_payload(payload: Dict[str, Any]) -> Dict[str, Any]:
@@ -119,8 +126,8 @@ def chart_from_payload(payload: Dict[str, Any]) -> Dict[str, Any]:
     if not birth_date:
         raise ValueError("date is required")
 
-    year, month, day = [int(part) for part in birth_date.split("-")]
-    hour, minute = [int(part) for part in birth_time.split(":")[:2]]
+    year, month, day = _parse_date(str(birth_date))
+    hour, minute = [int(part) for part in str(birth_time).split(":")[:2]]
     city = str(payload.get("city") or "")
     country = str(payload.get("country") or payload.get("nation") or "")
     fallback = CITY_FALLBACKS.get((city.strip().lower(), country.strip().lower()), {})
@@ -345,6 +352,16 @@ def _float_or_none(value: Any) -> Optional[float]:
     if value is None or value == "":
         return None
     return float(value)
+
+
+def _parse_date(value: str) -> "list[int]":
+    """Accept both ISO 'YYYY-MM-DD' and 'DD.MM.YYYY'."""
+    value = value.strip()
+    if "." in value:
+        day, month, year = [int(part) for part in value.split(".")[:3]]
+        return [year, month, day]
+    year, month, day = [int(part) for part in value.split("-")[:3]]
+    return [year, month, day]
 
 
 class handler(BaseHTTPRequestHandler):

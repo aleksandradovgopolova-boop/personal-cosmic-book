@@ -1632,6 +1632,87 @@
         display: none;
       }
     }
+    /* ── Natal chart result ── */
+    .chart-result { display: none; }
+    .modal.showing-result > *:not(.chart-result):not(.modal-close) { display: none; }
+    .modal.showing-result .chart-result { display: block; }
+
+    .chart-loading {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-top: 18px;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+    .chart-spinner {
+      width: 20px;
+      height: 20px;
+      border: 2px solid rgba(126, 181, 232, 0.25);
+      border-top-color: var(--blue);
+      border-radius: 50%;
+      animation: chart-spin 0.8s linear infinite;
+    }
+    @keyframes chart-spin { to { transform: rotate(360deg); } }
+
+    .chart-result-head { margin-bottom: 18px; }
+    .chart-result-head h3 {
+      margin: 0 0 4px;
+      font-family: "Cormorant Garamond", Georgia, serif;
+      font-size: 1.6rem;
+      color: var(--cream);
+    }
+    .chart-result-head p { margin: 0; color: var(--muted); font-size: 0.9rem; }
+
+    .chart-block { margin-top: 20px; }
+    .chart-block-title {
+      font-size: 0.72rem;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--blue);
+      margin: 0 0 12px;
+    }
+    .chart-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+      gap: 10px;
+    }
+    .chart-cell {
+      padding: 12px 14px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: rgba(126, 181, 232, 0.05);
+    }
+    .chart-cell .k { display: block; font-size: 0.72rem; color: var(--muted); margin-bottom: 4px; }
+    .chart-cell .v { display: block; font-size: 1.02rem; color: var(--cream); font-weight: 500; }
+
+    .chart-note {
+      margin-top: 18px;
+      padding: 12px 14px;
+      border-radius: 12px;
+      background: rgba(126, 181, 232, 0.08);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-size: 0.86rem;
+      line-height: 1.55;
+    }
+    .chart-error {
+      margin-top: 16px;
+      color: #E88A8A;
+      font-size: 0.9rem;
+    }
+    .chart-back {
+      margin-top: 20px;
+      background: none;
+      border: 1px solid var(--border-strong);
+      color: var(--cream);
+      padding: 10px 18px;
+      border-radius: 999px;
+      cursor: pointer;
+      font: inherit;
+      font-size: 0.9rem;
+    }
+    .chart-back:hover { background: rgba(126, 181, 232, 0.1); }
   </style>
 </head>
 <body>
@@ -2257,7 +2338,11 @@
     }
 
     function closeModal() {
-      modalList.forEach((modal) => modal.classList.remove("open"));
+      modalList.forEach((modal) => {
+        modal.classList.remove("open");
+        const form = modal.querySelector(".modal");
+        if (form) form.classList.remove("showing-result");
+      });
       activeModal = null;
     }
 
@@ -2362,16 +2447,189 @@
       clearValidation(form);
     }
 
-    function submitForm(event) {
+    const CHART_ENDPOINT = "/api/chart";
+
+    const SAJU_ELEMENTS = {
+      Wood: "Дерево", Fire: "Огонь", Earth: "Земля", Metal: "Металл", Water: "Вода"
+    };
+    const SAJU_ANIMALS = {
+      Rat: "Крыса", Ox: "Бык", Tiger: "Тигр", Rabbit: "Кролик", Dragon: "Дракон",
+      Snake: "Змея", Horse: "Лошадь", Goat: "Коза", Monkey: "Обезьяна",
+      Rooster: "Петух", Dog: "Собака", Pig: "Свинья"
+    };
+    const PLANET_LABELS = {
+      sun: "Солнце", moon: "Луна", mercury: "Меркурий", venus: "Венера",
+      mars: "Марс", jupiter: "Юпитер", saturn: "Сатурн", uranus: "Уран",
+      neptune: "Нептун", pluto: "Плутон"
+    };
+
+    function normalizeDateForApi(value) {
+      const raw = (value || "").trim();
+      const dotted = raw.match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})$/);
+      if (dotted) {
+        const [, d, m, y] = dotted;
+        return `${y}-${m.padStart(2, "0")}-${d.padStart(2, "0")}`;
+      }
+      return raw;
+    }
+
+    function formatDateRu(iso) {
+      const parts = (iso || "").split("-");
+      if (parts.length === 3) return `${parts[2]}.${parts[1]}.${parts[0]}`;
+      return iso || "";
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement("div");
+      div.textContent = text == null ? "" : String(text);
+      return div.innerHTML;
+    }
+
+    function sajuText(pillar) {
+      if (!pillar) return "—";
+      const [, element] = String(pillar.stem || "").split(" ");
+      const [, animal] = String(pillar.branch || "").split(" ");
+      const el = SAJU_ELEMENTS[element] || element || "";
+      const an = SAJU_ANIMALS[animal] || animal || "";
+      return [el, an].filter(Boolean).join(" · ") || "—";
+    }
+
+    function ensureResultPanel(form) {
+      let panel = form.querySelector(".chart-result");
+      if (!panel) {
+        panel = document.createElement("div");
+        panel.className = "chart-result";
+        form.appendChild(panel);
+      }
+      return panel;
+    }
+
+    function renderChart(panel, chart) {
+      const s = chart.subject || {};
+      const num = chart.numerology || {};
+      const saju = chart.saju || {};
+      const rows = [];
+
+      rows.push(
+        '<div class="chart-result-head">' +
+          `<h3>Карта: ${escapeHtml(s.name || "")}</h3>` +
+          `<p>${escapeHtml(formatDateRu(s.date))}${s.time ? " · " + escapeHtml(s.time) : ""}${s.city ? " · " + escapeHtml(s.city) : ""}</p>` +
+        "</div>"
+      );
+
+      if (chart.astrology_available) {
+        const cells = [];
+        if (chart.sun && chart.sun.sign) cells.push(["Солнце", chart.sun.sign]);
+        if (chart.moon && chart.moon.sign) cells.push(["Луна", chart.moon.sign]);
+        if (chart.asc && chart.asc.sign) cells.push(["Асцендент", chart.asc.sign]);
+        Object.keys(PLANET_LABELS).forEach((key) => {
+          if (["sun", "moon"].includes(key)) return;
+          const body = chart[key];
+          if (body && body.sign) cells.push([PLANET_LABELS[key], body.sign]);
+        });
+        if (cells.length) {
+          rows.push(
+            '<div class="chart-block"><p class="chart-block-title">Натальная карта</p><div class="chart-grid">' +
+              cells.map(([k, v]) => `<div class="chart-cell"><span class="k">${escapeHtml(k)}</span><span class="v">${escapeHtml(v)}</span></div>`).join("") +
+            "</div></div>"
+          );
+        }
+      }
+
+      rows.push(
+        '<div class="chart-block"><p class="chart-block-title">Нумерология</p><div class="chart-grid">' +
+          `<div class="chart-cell"><span class="k">Путь</span><span class="v">${escapeHtml(num.life_path ?? "—")}</span></div>` +
+          `<div class="chart-cell"><span class="k">День рождения</span><span class="v">${escapeHtml(num.birth_day ?? "—")}</span></div>` +
+          `<div class="chart-cell"><span class="k">Имя</span><span class="v">${escapeHtml(num.name_number ?? "—")}</span></div>` +
+        "</div></div>"
+      );
+
+      rows.push(
+        '<div class="chart-block"><p class="chart-block-title">Ба-цзы (четыре столпа)</p><div class="chart-grid">' +
+          `<div class="chart-cell"><span class="k">Год</span><span class="v">${escapeHtml(sajuText(saju.year_pillar))}</span></div>` +
+          `<div class="chart-cell"><span class="k">Месяц</span><span class="v">${escapeHtml(sajuText(saju.month_pillar))}</span></div>` +
+          `<div class="chart-cell"><span class="k">День</span><span class="v">${escapeHtml(sajuText(saju.day_pillar))}</span></div>` +
+          `<div class="chart-cell"><span class="k">Час</span><span class="v">${escapeHtml(sajuText(saju.hour_pillar))}</span></div>` +
+        "</div></div>"
+      );
+
+      if (!chart.astrology_available) {
+        rows.push(
+          '<div class="chart-note">Точная астрологическая карта (планеты и дома) появится в полной книге — для неё нужны точные координаты места рождения. Нумерология и Ба-цзы рассчитаны по дате рождения.</div>'
+        );
+      }
+
+      rows.push('<button type="button" class="chart-back" onclick="backToForm(this)">← Изменить данные</button>');
+      panel.innerHTML = rows.join("");
+    }
+
+    function backToForm(button) {
+      const form = button.closest(".modal");
+      if (form) form.classList.remove("showing-result");
+    }
+
+    async function submitForm(event) {
       event.preventDefault();
       const form = event.currentTarget;
       if (!validateForm(form)) return;
 
       const mode = form.dataset.mode || "book";
-      const toastMessage = (modalCopy[mode] ?? modalCopy.book).toast;
-      closeModal();
-      showToast(toastMessage);
-      resetFormState(form);
+
+      // The compatibility flow describes two people — keep it as a request for now.
+      if (mode === "compatibility") {
+        const toastMessage = (modalCopy[mode] ?? modalCopy.book).toast;
+        closeModal();
+        showToast(toastMessage);
+        resetFormState(form);
+        return;
+      }
+
+      const submitButton = form.querySelector(".submit-button");
+      const originalLabel = submitButton ? submitButton.textContent : "";
+      if (submitButton) {
+        submitButton.disabled = true;
+        submitButton.textContent = "Считаем твою карту…";
+      }
+
+      const read = (name) => {
+        const field = form.querySelector(`[name="${name}"]`);
+        return field ? field.value.trim() : "";
+      };
+
+      const payload = {
+        name: read("subject-name") || "Subject",
+        date: normalizeDateForApi(read("birth-date")),
+        time: read("birth-time"),
+        city: read("birth-city")
+      };
+
+      try {
+        const response = await fetch(CHART_ENDPOINT, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+        if (!response.ok) {
+          const detail = await response.json().catch(() => ({}));
+          throw new Error(detail.error || `Ошибка ${response.status}`);
+        }
+        const chart = await response.json();
+        const panel = ensureResultPanel(form);
+        renderChart(panel, chart);
+        form.classList.add("showing-result");
+      } catch (error) {
+        const panel = ensureResultPanel(form);
+        panel.innerHTML =
+          '<div class="chart-result-head"><h3>Не получилось рассчитать карту</h3></div>' +
+          `<p class="chart-error">${escapeHtml(error.message || "Попробуй ещё раз чуть позже.")}</p>` +
+          '<button type="button" class="chart-back" onclick="backToForm(this)">← Назад</button>';
+        form.classList.add("showing-result");
+      } finally {
+        if (submitButton) {
+          submitButton.disabled = false;
+          submitButton.textContent = originalLabel;
+        }
+      }
     }
 
     function showToast(message) {
