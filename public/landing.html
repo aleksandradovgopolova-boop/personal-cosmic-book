@@ -1632,6 +1632,87 @@
         display: none;
       }
     }
+    /* ── Natal chart result ── */
+    .chart-result { display: none; }
+    .modal.showing-result > *:not(.chart-result):not(.modal-close) { display: none; }
+    .modal.showing-result .chart-result { display: block; }
+
+    .chart-loading {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-top: 18px;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+    .chart-spinner {
+      width: 20px;
+      height: 20px;
+      border: 2px solid rgba(126, 181, 232, 0.25);
+      border-top-color: var(--blue);
+      border-radius: 50%;
+      animation: chart-spin 0.8s linear infinite;
+    }
+    @keyframes chart-spin { to { transform: rotate(360deg); } }
+
+    .chart-result-head { margin-bottom: 18px; }
+    .chart-result-head h3 {
+      margin: 0 0 4px;
+      font-family: "Cormorant Garamond", Georgia, serif;
+      font-size: 1.6rem;
+      color: var(--cream);
+    }
+    .chart-result-head p { margin: 0; color: var(--muted); font-size: 0.9rem; }
+
+    .chart-block { margin-top: 20px; }
+    .chart-block-title {
+      font-size: 0.72rem;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--blue);
+      margin: 0 0 12px;
+    }
+    .chart-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+      gap: 10px;
+    }
+    .chart-cell {
+      padding: 12px 14px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: rgba(126, 181, 232, 0.05);
+    }
+    .chart-cell .k { display: block; font-size: 0.72rem; color: var(--muted); margin-bottom: 4px; }
+    .chart-cell .v { display: block; font-size: 1.02rem; color: var(--cream); font-weight: 500; }
+
+    .chart-note {
+      margin-top: 18px;
+      padding: 12px 14px;
+      border-radius: 12px;
+      background: rgba(126, 181, 232, 0.08);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-size: 0.86rem;
+      line-height: 1.55;
+    }
+    .chart-error {
+      margin-top: 16px;
+      color: #E88A8A;
+      font-size: 0.9rem;
+    }
+    .chart-back {
+      margin-top: 20px;
+      background: none;
+      border: 1px solid var(--border-strong);
+      color: var(--cream);
+      padding: 10px 18px;
+      border-radius: 999px;
+      cursor: pointer;
+      font: inherit;
+      font-size: 0.9rem;
+    }
+    .chart-back:hover { background: rgba(126, 181, 232, 0.1); }
   </style>
 </head>
 <body>
@@ -2257,7 +2338,11 @@
     }
 
     function closeModal() {
-      modalList.forEach((modal) => modal.classList.remove("open"));
+      modalList.forEach((modal) => {
+        modal.classList.remove("open");
+        const form = modal.querySelector(".modal");
+        if (form) form.classList.remove("showing-result");
+      });
       activeModal = null;
     }
 
@@ -2362,16 +2447,283 @@
       clearValidation(form);
     }
 
-    function submitForm(event) {
+    const CHART_ENDPOINT = "/api/chart";
+
+    const SAJU_ELEMENTS = {
+      Wood: "Дерево", Fire: "Огонь", Earth: "Земля", Metal: "Металл", Water: "Вода"
+    };
+    const SAJU_ANIMALS = {
+      Rat: "Крыса", Ox: "Бык", Tiger: "Тигр", Rabbit: "Кролик", Dragon: "Дракон",
+      Snake: "Змея", Horse: "Лошадь", Goat: "Коза", Monkey: "Обезьяна",
+      Rooster: "Петух", Dog: "Собака", Pig: "Свинья"
+    };
+    const PLANET_LABELS = {
+      sun: "Солнце", moon: "Луна", mercury: "Меркурий", venus: "Венера",
+      mars: "Марс", jupiter: "Юпитер", saturn: "Сатурн", uranus: "Уран",
+      neptune: "Нептун", pluto: "Плутон"
+    };
+
+    function normalizeDateForApi(value) {
+      const raw = (value || "").trim();
+      const dotted = raw.match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})$/);
+      if (dotted) {
+        const [, d, m, y] = dotted;
+        return `${y}-${m.padStart(2, "0")}-${d.padStart(2, "0")}`;
+      }
+      return raw;
+    }
+
+    function formatDateRu(iso) {
+      const parts = (iso || "").split("-");
+      if (parts.length === 3) return `${parts[2]}.${parts[1]}.${parts[0]}`;
+      return iso || "";
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement("div");
+      div.textContent = text == null ? "" : String(text);
+      return div.innerHTML;
+    }
+
+    function sajuText(pillar) {
+      if (!pillar) return "—";
+      const [, element] = String(pillar.stem || "").split(" ");
+      const [, animal] = String(pillar.branch || "").split(" ");
+      const el = SAJU_ELEMENTS[element] || element || "";
+      const an = SAJU_ANIMALS[animal] || animal || "";
+      return [el, an].filter(Boolean).join(" · ") || "—";
+    }
+
+    function ensureResultPanel(form) {
+      let panel = form.querySelector(".chart-result");
+      if (!panel) {
+        panel = document.createElement("div");
+        panel.className = "chart-result";
+        form.appendChild(panel);
+      }
+      return panel;
+    }
+
+    function chartBodyHtml(chart, heading) {
+      const s = chart.subject || {};
+      const num = chart.numerology || {};
+      const saju = chart.saju || {};
+      const rows = [];
+
+      rows.push(
+        '<div class="chart-result-head">' +
+          `<h3>${escapeHtml(heading || ("Карта: " + (s.name || "")))}</h3>` +
+          `<p>${escapeHtml(formatDateRu(s.date))}${s.time ? " · " + escapeHtml(s.time) : ""}${s.city ? " · " + escapeHtml(s.city) : ""}</p>` +
+        "</div>"
+      );
+
+      if (chart.astrology_available) {
+        const cells = [];
+        if (chart.sun && chart.sun.sign) cells.push(["Солнце", chart.sun.sign]);
+        if (chart.moon && chart.moon.sign) cells.push(["Луна", chart.moon.sign]);
+        if (chart.asc && chart.asc.sign) cells.push(["Асцендент", chart.asc.sign]);
+        Object.keys(PLANET_LABELS).forEach((key) => {
+          if (key === "sun" || key === "moon") return;
+          const body = chart[key];
+          if (body && body.sign) cells.push([PLANET_LABELS[key], body.sign]);
+        });
+        if (cells.length) {
+          rows.push(
+            '<div class="chart-block"><p class="chart-block-title">Натальная карта</p><div class="chart-grid">' +
+              cells.map(([k, v]) => `<div class="chart-cell"><span class="k">${escapeHtml(k)}</span><span class="v">${escapeHtml(v)}</span></div>`).join("") +
+            "</div></div>"
+          );
+        }
+      }
+
+      rows.push(
+        '<div class="chart-block"><p class="chart-block-title">Нумерология</p><div class="chart-grid">' +
+          `<div class="chart-cell"><span class="k">Путь</span><span class="v">${escapeHtml(num.life_path ?? "—")}</span></div>` +
+          `<div class="chart-cell"><span class="k">День рождения</span><span class="v">${escapeHtml(num.birth_day ?? "—")}</span></div>` +
+          `<div class="chart-cell"><span class="k">Имя</span><span class="v">${escapeHtml(num.name_number ?? "—")}</span></div>` +
+        "</div></div>"
+      );
+
+      rows.push(
+        '<div class="chart-block"><p class="chart-block-title">Ба-цзы (четыре столпа)</p><div class="chart-grid">' +
+          `<div class="chart-cell"><span class="k">Год</span><span class="v">${escapeHtml(sajuText(saju.year_pillar))}</span></div>` +
+          `<div class="chart-cell"><span class="k">Месяц</span><span class="v">${escapeHtml(sajuText(saju.month_pillar))}</span></div>` +
+          `<div class="chart-cell"><span class="k">День</span><span class="v">${escapeHtml(sajuText(saju.day_pillar))}</span></div>` +
+          `<div class="chart-cell"><span class="k">Час</span><span class="v">${escapeHtml(sajuText(saju.hour_pillar))}</span></div>` +
+        "</div></div>"
+      );
+
+      if (!chart.astrology_available) {
+        rows.push(
+          '<div class="chart-note">Точная астрологическая карта (планеты и дома) появится в полной книге — для неё нужны точные координаты места рождения. Нумерология и Ба-цзы рассчитаны по дате рождения.</div>'
+        );
+      }
+
+      return rows.join("");
+    }
+
+    const PRODUCT_BY_MODE = { book: "pcb_basic", gift: "pcb_bundle", compatibility: "pcb_compatibility" };
+    const PRODUCT_INFO = {
+      pcb_basic: { title: "Полная книга", price: 990 },
+      pcb_bundle: { title: "Подарочная книга", price: 990 },
+      pcb_compatibility: { title: "Книга пары", price: 1490 }
+    };
+
+    function purchaseCtaHtml(mode) {
+      const info = PRODUCT_INFO[PRODUCT_BY_MODE[mode] || "pcb_basic"];
+      return (
+        `<button type="button" class="submit-button" style="margin-top:22px" onclick="startCheckout(this)">Получить полную книгу — ${info.price} ₽</button>` +
+        '<button type="button" class="chart-back" onclick="backToForm(this)">← Изменить данные</button>'
+      );
+    }
+
+    function renderChart(panel, chart, mode) {
+      panel.innerHTML = chartBodyHtml(chart) + purchaseCtaHtml(mode);
+    }
+
+    function renderCompat(panel, chartA, chartB, mode) {
+      panel.innerHTML =
+        chartBodyHtml(chartA, "Первый человек: " + ((chartA.subject && chartA.subject.name) || "")) +
+        '<div style="height:1px;background:var(--border);margin:24px 0"></div>' +
+        chartBodyHtml(chartB, "Второй человек: " + ((chartB.subject && chartB.subject.name) || "")) +
+        '<div class="chart-note">Полный разбор совместимости — синастрия, общие темы и динамика пары — в книге пары.</div>' +
+        purchaseCtaHtml(mode);
+    }
+
+    function backToForm(button) {
+      const form = button.closest(".modal");
+      if (form) form.classList.remove("showing-result");
+    }
+
+    function startCheckout(button) {
+      const form = button.closest(".modal");
+      if (!form) return;
+      const mode = form.dataset.mode || "book";
+      const product = PRODUCT_BY_MODE[mode] || "pcb_basic";
+      const info = PRODUCT_INFO[product];
+      const emailField = form.querySelector('[name="email"]');
+      const email = emailField ? emailField.value.trim() : "";
+      const panel = ensureResultPanel(form);
+      panel.dataset.product = product;
+      panel.dataset.email = email;
+      panel.innerHTML =
+        '<div class="chart-result-head"><h3>Оформление</h3><p>Проверь данные заказа</p></div>' +
+        '<div class="chart-block"><div class="chart-grid">' +
+          `<div class="chart-cell"><span class="k">Продукт</span><span class="v">${escapeHtml(info.title)}</span></div>` +
+          `<div class="chart-cell"><span class="k">Цена</span><span class="v">${info.price} ₽</span></div>` +
+          `<div class="chart-cell"><span class="k">Email</span><span class="v">${escapeHtml(email || "—")}</span></div>` +
+        "</div></div>" +
+        `<button type="button" class="submit-button" style="margin-top:22px" onclick="payNow(this)">Оплатить ${info.price} ₽</button>` +
+        '<button type="button" class="chart-back" onclick="backToForm(this)">← Закрыть</button>';
+    }
+
+    async function payNow(button) {
+      const form = button.closest(".modal");
+      const panel = ensureResultPanel(form);
+      const product = panel.dataset.product || "pcb_basic";
+      const email = panel.dataset.email || "";
+      button.disabled = true;
+      const original = button.textContent;
+      button.textContent = "Переходим к оплате…";
+      try {
+        const response = await fetch("/api/checkout", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ product, email, return_url: window.location.origin })
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(data.error || `Ошибка ${response.status}`);
+
+        if (data.confirmation_url) {
+          window.location.href = data.confirmation_url;
+          return;
+        }
+        panel.innerHTML =
+          '<div class="chart-result-head"><h3>Заказ оформлен ✨</h3></div>' +
+          `<div class="chart-note">${escapeHtml(data.message || "Мы приступили к созданию книги. Пришлём ссылку на почту в течение 2 часов.")}</div>` +
+          '<button type="button" class="chart-back" onclick="closeModal()">Готово</button>';
+      } catch (error) {
+        panel.innerHTML =
+          '<div class="chart-result-head"><h3>Не получилось оформить оплату</h3></div>' +
+          `<p class="chart-error">${escapeHtml(error.message || "Попробуй ещё раз чуть позже.")}</p>` +
+          '<button type="button" class="chart-back" onclick="startCheckout(this)">← Назад</button>';
+      } finally {
+        button.disabled = false;
+        button.textContent = original;
+      }
+    }
+
+    function readPerson(form, kind) {
+      const map =
+        kind === "first"
+          ? { name: "first-name", date: "first-birth-date", time: "first-birth-time", city: "first-birth-city" }
+          : kind === "second"
+          ? { name: "second-name", date: "second-birth-date", time: "second-birth-time", city: "second-birth-city" }
+          : { name: "subject-name", date: "birth-date", time: "birth-time", city: "birth-city" };
+      const val = (name) => {
+        const field = form.querySelector(`[name="${name}"]`);
+        return field ? field.value.trim() : "";
+      };
+      return {
+        name: val(map.name) || "Subject",
+        date: normalizeDateForApi(val(map.date)),
+        time: val(map.time),
+        city: val(map.city)
+      };
+    }
+
+    async function fetchChart(person) {
+      const response = await fetch(CHART_ENDPOINT, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(person)
+      });
+      if (!response.ok) {
+        const detail = await response.json().catch(() => ({}));
+        throw new Error(detail.error || `Ошибка ${response.status}`);
+      }
+      return response.json();
+    }
+
+    async function submitForm(event) {
       event.preventDefault();
       const form = event.currentTarget;
       if (!validateForm(form)) return;
 
       const mode = form.dataset.mode || "book";
-      const toastMessage = (modalCopy[mode] ?? modalCopy.book).toast;
-      closeModal();
-      showToast(toastMessage);
-      resetFormState(form);
+      const submitButton = form.querySelector(".submit-button");
+      const originalLabel = submitButton ? submitButton.textContent : "";
+      if (submitButton) {
+        submitButton.disabled = true;
+        submitButton.textContent = "Считаем карту…";
+      }
+
+      const panel = ensureResultPanel(form);
+
+      try {
+        if (mode === "compatibility") {
+          const [chartA, chartB] = await Promise.all([
+            fetchChart(readPerson(form, "first")),
+            fetchChart(readPerson(form, "second"))
+          ]);
+          renderCompat(panel, chartA, chartB, mode);
+        } else {
+          const chart = await fetchChart(readPerson(form, ""));
+          renderChart(panel, chart, mode);
+        }
+        form.classList.add("showing-result");
+      } catch (error) {
+        panel.innerHTML =
+          '<div class="chart-result-head"><h3>Не получилось рассчитать карту</h3></div>' +
+          `<p class="chart-error">${escapeHtml(error.message || "Попробуй ещё раз чуть позже.")}</p>` +
+          '<button type="button" class="chart-back" onclick="backToForm(this)">← Назад</button>';
+        form.classList.add("showing-result");
+      } finally {
+        if (submitButton) {
+          submitButton.disabled = false;
+          submitButton.textContent = originalLabel;
+        }
+      }
     }
 
     function showToast(message) {

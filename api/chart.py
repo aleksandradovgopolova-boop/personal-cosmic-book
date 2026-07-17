@@ -24,14 +24,110 @@ PLANETS = (
     "chiron",
 )
 
-CITY_FALLBACKS = {
-    ("moscow", "ru"): {"lat": 55.7558, "lng": 37.6173, "tz": "Europe/Moscow"},
-    ("москва", "ru"): {"lat": 55.7558, "lng": 37.6173, "tz": "Europe/Moscow"},
-    ("saint petersburg", "ru"): {"lat": 59.9311, "lng": 30.3609, "tz": "Europe/Moscow"},
-    ("санкт-петербург", "ru"): {"lat": 59.9311, "lng": 30.3609, "tz": "Europe/Moscow"},
-    ("new york", "us"): {"lat": 40.7128, "lng": -74.006, "tz": "America/New_York"},
-    ("london", "gb"): {"lat": 51.5072, "lng": -0.1276, "tz": "Europe/London"},
+# Offline coordinates for common cities, keyed by lowercased city name (RU + EN).
+# Used first so the endpoint works without any network; the online geocoder below
+# resolves anything else.
+CITY_COORDS = {
+    "moscow": {"lat": 55.7558, "lng": 37.6173, "tz": "Europe/Moscow"},
+    "москва": {"lat": 55.7558, "lng": 37.6173, "tz": "Europe/Moscow"},
+    "saint petersburg": {"lat": 59.9311, "lng": 30.3609, "tz": "Europe/Moscow"},
+    "st petersburg": {"lat": 59.9311, "lng": 30.3609, "tz": "Europe/Moscow"},
+    "санкт-петербург": {"lat": 59.9311, "lng": 30.3609, "tz": "Europe/Moscow"},
+    "спб": {"lat": 59.9311, "lng": 30.3609, "tz": "Europe/Moscow"},
+    "питер": {"lat": 59.9311, "lng": 30.3609, "tz": "Europe/Moscow"},
+    "новосибирск": {"lat": 55.0084, "lng": 82.9357, "tz": "Asia/Novosibirsk"},
+    "novosibirsk": {"lat": 55.0084, "lng": 82.9357, "tz": "Asia/Novosibirsk"},
+    "екатеринбург": {"lat": 56.8389, "lng": 60.6057, "tz": "Asia/Yekaterinburg"},
+    "yekaterinburg": {"lat": 56.8389, "lng": 60.6057, "tz": "Asia/Yekaterinburg"},
+    "казань": {"lat": 55.7963, "lng": 49.1088, "tz": "Europe/Moscow"},
+    "kazan": {"lat": 55.7963, "lng": 49.1088, "tz": "Europe/Moscow"},
+    "нижний новгород": {"lat": 56.2965, "lng": 43.9361, "tz": "Europe/Moscow"},
+    "челябинск": {"lat": 55.1644, "lng": 61.4368, "tz": "Asia/Yekaterinburg"},
+    "самара": {"lat": 53.1959, "lng": 50.1002, "tz": "Europe/Samara"},
+    "ростов-на-дону": {"lat": 47.2357, "lng": 39.7015, "tz": "Europe/Moscow"},
+    "краснодар": {"lat": 45.0355, "lng": 38.9753, "tz": "Europe/Moscow"},
+    "владивосток": {"lat": 43.1155, "lng": 131.8855, "tz": "Asia/Vladivostok"},
+    "сочи": {"lat": 43.5855, "lng": 39.7231, "tz": "Europe/Moscow"},
+    "калининград": {"lat": 54.7104, "lng": 20.4522, "tz": "Europe/Kaliningrad"},
+    "киев": {"lat": 50.4501, "lng": 30.5234, "tz": "Europe/Kyiv"},
+    "kyiv": {"lat": 50.4501, "lng": 30.5234, "tz": "Europe/Kyiv"},
+    "kiev": {"lat": 50.4501, "lng": 30.5234, "tz": "Europe/Kyiv"},
+    "минск": {"lat": 53.9006, "lng": 27.5590, "tz": "Europe/Minsk"},
+    "minsk": {"lat": 53.9006, "lng": 27.5590, "tz": "Europe/Minsk"},
+    "алматы": {"lat": 43.2220, "lng": 76.8512, "tz": "Asia/Almaty"},
+    "almaty": {"lat": 43.2220, "lng": 76.8512, "tz": "Asia/Almaty"},
+    "ташкент": {"lat": 41.2995, "lng": 69.2401, "tz": "Asia/Tashkent"},
+    "тбилиси": {"lat": 41.7151, "lng": 44.8271, "tz": "Asia/Tbilisi"},
+    "ереван": {"lat": 40.1792, "lng": 44.4991, "tz": "Asia/Yerevan"},
+    "баку": {"lat": 40.4093, "lng": 49.8671, "tz": "Asia/Baku"},
+    "new york": {"lat": 40.7128, "lng": -74.006, "tz": "America/New_York"},
+    "london": {"lat": 51.5072, "lng": -0.1276, "tz": "Europe/London"},
+    "paris": {"lat": 48.8566, "lng": 2.3522, "tz": "Europe/Paris"},
+    "berlin": {"lat": 52.52, "lng": 13.405, "tz": "Europe/Berlin"},
+    "istanbul": {"lat": 41.0082, "lng": 28.9784, "tz": "Europe/Istanbul"},
+    "стамбул": {"lat": 41.0082, "lng": 28.9784, "tz": "Europe/Istanbul"},
+    "dubai": {"lat": 25.2048, "lng": 55.2708, "tz": "Asia/Dubai"},
+    "дубай": {"lat": 25.2048, "lng": 55.2708, "tz": "Asia/Dubai"},
 }
+
+
+def _geocode_online(city: str, country: str = "") -> Optional[Dict[str, Any]]:
+    """Resolve a city to lat/lng/timezone via the free Open-Meteo geocoder.
+
+    Returns None on any failure so the caller can degrade gracefully. Not used
+    when offline coordinates already cover the city.
+    """
+    import json as _json
+    import ssl as _ssl
+    import urllib.parse as _urlparse
+    import urllib.request as _urlreq
+
+    query = city.strip()
+    if not query:
+        return None
+    params = _urlparse.urlencode({"name": query, "count": 1, "language": "ru", "format": "json"})
+    url = f"https://geocoding-api.open-meteo.com/v1/search?{params}"
+    try:
+        context = _ssl.create_default_context()
+        request = _urlreq.Request(url, headers={"User-Agent": "personal-cosmic-book/1.0"})
+        with _urlreq.urlopen(request, context=context, timeout=8) as response:
+            data = _json.load(response)
+    except Exception:
+        return None
+
+    results = data.get("results") or []
+    if not results:
+        return None
+    top = results[0]
+    if top.get("latitude") is None or top.get("longitude") is None:
+        return None
+    return {
+        "lat": float(top["latitude"]),
+        "lng": float(top["longitude"]),
+        "tz": top.get("timezone") or "UTC",
+    }
+
+
+def _resolve_location(
+    city: str,
+    country: str,
+    lat: Optional[float],
+    lng: Optional[float],
+    timezone: Optional[str],
+) -> Dict[str, Optional[Any]]:
+    """Best-effort coordinates+timezone so kerykeion can run offline."""
+    if lat is not None and lng is not None:
+        return {"lat": lat, "lng": lng, "tz": timezone or "UTC"}
+
+    offline = CITY_COORDS.get(city.strip().lower())
+    if offline:
+        return {"lat": offline["lat"], "lng": offline["lng"], "tz": timezone or offline["tz"]}
+
+    online = _geocode_online(city, country)
+    if online:
+        return {"lat": online["lat"], "lng": online["lng"], "tz": timezone or online["tz"]}
+
+    return {"lat": None, "lng": None, "tz": timezone}
 
 STEMS = (
     "Jia Wood",
@@ -76,27 +172,7 @@ def get_chart(
 ) -> Dict[str, Any]:
     """Return a normalized chart JSON for the product pipeline."""
 
-    subject = _build_subject(
-        name=name,
-        year=year,
-        month=month,
-        day=day,
-        hour=hour,
-        minute=minute,
-        city=city,
-        country=country,
-        lat=lat,
-        lng=lng,
-        timezone=timezone,
-    )
-
-    bodies = {planet: _body(subject, planet) for planet in PLANETS if _has(subject, planet)}
-    houses = {
-        "asc": _angle(subject, "first_house"),
-        "mc": _angle(subject, "tenth_house"),
-    }
-
-    return {
+    chart: Dict[str, Any] = {
         "subject": {
             "name": name,
             "date": f"{year:04d}-{month:02d}-{day:02d}",
@@ -105,12 +181,40 @@ def get_chart(
             "country": country,
         },
         "input_hash": _input_hash(year, month, day, hour, minute, city, country),
-        **bodies,
-        **houses,
-        "aspects": _aspects(subject),
+        "location": {"lat": lat, "lng": lng, "tz": timezone},
         "numerology": _numerology(year, month, day, name),
         "saju": _saju(year, month, day, hour),
     }
+
+    # Numerology and Saju are always available (computed from the date).
+    # Astrology needs kerykeion plus a resolvable birth location, so it may be
+    # unavailable in some environments — degrade gracefully instead of failing.
+    try:
+        subject = _build_subject(
+            name=name,
+            year=year,
+            month=month,
+            day=day,
+            hour=hour,
+            minute=minute,
+            city=city,
+            country=country,
+            lat=lat,
+            lng=lng,
+            timezone=timezone,
+        )
+
+        bodies = {planet: _body(subject, planet) for planet in PLANETS if _has(subject, planet)}
+        chart.update(bodies)
+        chart["asc"] = _angle(subject, "first_house")
+        chart["mc"] = _angle(subject, "tenth_house")
+        chart["aspects"] = _aspects(subject)
+        chart["astrology_available"] = True
+    except Exception as exc:  # noqa: BLE001 - report, don't crash the endpoint
+        chart["astrology_available"] = False
+        chart["astrology_error"] = str(exc)
+
+    return chart
 
 
 def chart_from_payload(payload: Dict[str, Any]) -> Dict[str, Any]:
@@ -119,11 +223,18 @@ def chart_from_payload(payload: Dict[str, Any]) -> Dict[str, Any]:
     if not birth_date:
         raise ValueError("date is required")
 
-    year, month, day = [int(part) for part in birth_date.split("-")]
-    hour, minute = [int(part) for part in birth_time.split(":")[:2]]
+    year, month, day = _parse_date(str(birth_date))
+    hour, minute = [int(part) for part in str(birth_time).split(":")[:2]]
     city = str(payload.get("city") or "")
     country = str(payload.get("country") or payload.get("nation") or "")
-    fallback = CITY_FALLBACKS.get((city.strip().lower(), country.strip().lower()), {})
+
+    location = _resolve_location(
+        city=city,
+        country=country,
+        lat=_float_or_none(payload.get("lat")),
+        lng=_float_or_none(payload.get("lng", payload.get("lon"))),
+        timezone=payload.get("timezone") or payload.get("tz"),
+    )
 
     return get_chart(
         name=str(payload.get("name") or "Subject"),
@@ -134,9 +245,9 @@ def chart_from_payload(payload: Dict[str, Any]) -> Dict[str, Any]:
         minute=minute,
         city=city,
         country=country,
-        lat=_float_or_none(payload.get("lat", fallback.get("lat"))),
-        lng=_float_or_none(payload.get("lng", payload.get("lon", fallback.get("lng")))),
-        timezone=payload.get("timezone") or payload.get("tz") or fallback.get("tz"),
+        lat=location["lat"],
+        lng=location["lng"],
+        timezone=location["tz"],
     )
 
 
@@ -345,6 +456,16 @@ def _float_or_none(value: Any) -> Optional[float]:
     if value is None or value == "":
         return None
     return float(value)
+
+
+def _parse_date(value: str) -> "list[int]":
+    """Accept both ISO 'YYYY-MM-DD' and 'DD.MM.YYYY'."""
+    value = value.strip()
+    if "." in value:
+        day, month, year = [int(part) for part in value.split(".")[:3]]
+        return [year, month, day]
+    year, month, day = [int(part) for part in value.split("-")[:3]]
+    return [year, month, day]
 
 
 class handler(BaseHTTPRequestHandler):
