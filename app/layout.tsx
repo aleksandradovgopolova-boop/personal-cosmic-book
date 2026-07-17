@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Больше не буду меньше",
+  title: "Personal Cosmic Book",
   description:
-    "Адаптивный сайт-ридер для книги Саши Довгополовой с разворотами и оглавлением"
+    "Сервис генерации персональных digital-книг на основе натальной карты"
 };
 
 export default function RootLayout({
