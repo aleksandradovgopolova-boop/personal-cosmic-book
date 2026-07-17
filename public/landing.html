@@ -2504,7 +2504,7 @@
       return panel;
     }
 
-    function renderChart(panel, chart) {
+    function chartBodyHtml(chart, heading) {
       const s = chart.subject || {};
       const num = chart.numerology || {};
       const saju = chart.saju || {};
@@ -2512,7 +2512,7 @@
 
       rows.push(
         '<div class="chart-result-head">' +
-          `<h3>Карта: ${escapeHtml(s.name || "")}</h3>` +
+          `<h3>${escapeHtml(heading || ("Карта: " + (s.name || "")))}</h3>` +
           `<p>${escapeHtml(formatDateRu(s.date))}${s.time ? " · " + escapeHtml(s.time) : ""}${s.city ? " · " + escapeHtml(s.city) : ""}</p>` +
         "</div>"
       );
@@ -2523,7 +2523,7 @@
         if (chart.moon && chart.moon.sign) cells.push(["Луна", chart.moon.sign]);
         if (chart.asc && chart.asc.sign) cells.push(["Асцендент", chart.asc.sign]);
         Object.keys(PLANET_LABELS).forEach((key) => {
-          if (["sun", "moon"].includes(key)) return;
+          if (key === "sun" || key === "moon") return;
           const body = chart[key];
           if (body && body.sign) cells.push([PLANET_LABELS[key], body.sign]);
         });
@@ -2559,13 +2559,130 @@
         );
       }
 
-      rows.push('<button type="button" class="chart-back" onclick="backToForm(this)">← Изменить данные</button>');
-      panel.innerHTML = rows.join("");
+      return rows.join("");
+    }
+
+    const PRODUCT_BY_MODE = { book: "pcb_basic", gift: "pcb_bundle", compatibility: "pcb_compatibility" };
+    const PRODUCT_INFO = {
+      pcb_basic: { title: "Полная книга", price: 990 },
+      pcb_bundle: { title: "Подарочная книга", price: 990 },
+      pcb_compatibility: { title: "Книга пары", price: 1490 }
+    };
+
+    function purchaseCtaHtml(mode) {
+      const info = PRODUCT_INFO[PRODUCT_BY_MODE[mode] || "pcb_basic"];
+      return (
+        `<button type="button" class="submit-button" style="margin-top:22px" onclick="startCheckout(this)">Получить полную книгу — ${info.price} ₽</button>` +
+        '<button type="button" class="chart-back" onclick="backToForm(this)">← Изменить данные</button>'
+      );
+    }
+
+    function renderChart(panel, chart, mode) {
+      panel.innerHTML = chartBodyHtml(chart) + purchaseCtaHtml(mode);
+    }
+
+    function renderCompat(panel, chartA, chartB, mode) {
+      panel.innerHTML =
+        chartBodyHtml(chartA, "Первый человек: " + ((chartA.subject && chartA.subject.name) || "")) +
+        '<div style="height:1px;background:var(--border);margin:24px 0"></div>' +
+        chartBodyHtml(chartB, "Второй человек: " + ((chartB.subject && chartB.subject.name) || "")) +
+        '<div class="chart-note">Полный разбор совместимости — синастрия, общие темы и динамика пары — в книге пары.</div>' +
+        purchaseCtaHtml(mode);
     }
 
     function backToForm(button) {
       const form = button.closest(".modal");
       if (form) form.classList.remove("showing-result");
+    }
+
+    function startCheckout(button) {
+      const form = button.closest(".modal");
+      if (!form) return;
+      const mode = form.dataset.mode || "book";
+      const product = PRODUCT_BY_MODE[mode] || "pcb_basic";
+      const info = PRODUCT_INFO[product];
+      const emailField = form.querySelector('[name="email"]');
+      const email = emailField ? emailField.value.trim() : "";
+      const panel = ensureResultPanel(form);
+      panel.dataset.product = product;
+      panel.dataset.email = email;
+      panel.innerHTML =
+        '<div class="chart-result-head"><h3>Оформление</h3><p>Проверь данные заказа</p></div>' +
+        '<div class="chart-block"><div class="chart-grid">' +
+          `<div class="chart-cell"><span class="k">Продукт</span><span class="v">${escapeHtml(info.title)}</span></div>` +
+          `<div class="chart-cell"><span class="k">Цена</span><span class="v">${info.price} ₽</span></div>` +
+          `<div class="chart-cell"><span class="k">Email</span><span class="v">${escapeHtml(email || "—")}</span></div>` +
+        "</div></div>" +
+        `<button type="button" class="submit-button" style="margin-top:22px" onclick="payNow(this)">Оплатить ${info.price} ₽</button>` +
+        '<button type="button" class="chart-back" onclick="backToForm(this)">← Закрыть</button>';
+    }
+
+    async function payNow(button) {
+      const form = button.closest(".modal");
+      const panel = ensureResultPanel(form);
+      const product = panel.dataset.product || "pcb_basic";
+      const email = panel.dataset.email || "";
+      button.disabled = true;
+      const original = button.textContent;
+      button.textContent = "Переходим к оплате…";
+      try {
+        const response = await fetch("/api/checkout", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ product, email, return_url: window.location.origin })
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(data.error || `Ошибка ${response.status}`);
+
+        if (data.confirmation_url) {
+          window.location.href = data.confirmation_url;
+          return;
+        }
+        panel.innerHTML =
+          '<div class="chart-result-head"><h3>Заказ оформлен ✨</h3></div>' +
+          `<div class="chart-note">${escapeHtml(data.message || "Мы приступили к созданию книги. Пришлём ссылку на почту в течение 2 часов.")}</div>` +
+          '<button type="button" class="chart-back" onclick="closeModal()">Готово</button>';
+      } catch (error) {
+        panel.innerHTML =
+          '<div class="chart-result-head"><h3>Не получилось оформить оплату</h3></div>' +
+          `<p class="chart-error">${escapeHtml(error.message || "Попробуй ещё раз чуть позже.")}</p>` +
+          '<button type="button" class="chart-back" onclick="startCheckout(this)">← Назад</button>';
+      } finally {
+        button.disabled = false;
+        button.textContent = original;
+      }
+    }
+
+    function readPerson(form, kind) {
+      const map =
+        kind === "first"
+          ? { name: "first-name", date: "first-birth-date", time: "first-birth-time", city: "first-birth-city" }
+          : kind === "second"
+          ? { name: "second-name", date: "second-birth-date", time: "second-birth-time", city: "second-birth-city" }
+          : { name: "subject-name", date: "birth-date", time: "birth-time", city: "birth-city" };
+      const val = (name) => {
+        const field = form.querySelector(`[name="${name}"]`);
+        return field ? field.value.trim() : "";
+      };
+      return {
+        name: val(map.name) || "Subject",
+        date: normalizeDateForApi(val(map.date)),
+        time: val(map.time),
+        city: val(map.city)
+      };
+    }
+
+    async function fetchChart(person) {
+      const response = await fetch(CHART_ENDPOINT, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(person)
+      });
+      if (!response.ok) {
+        const detail = await response.json().catch(() => ({}));
+        throw new Error(detail.error || `Ошибка ${response.status}`);
+      }
+      return response.json();
     }
 
     async function submitForm(event) {
@@ -2574,51 +2691,28 @@
       if (!validateForm(form)) return;
 
       const mode = form.dataset.mode || "book";
-
-      // The compatibility flow describes two people — keep it as a request for now.
-      if (mode === "compatibility") {
-        const toastMessage = (modalCopy[mode] ?? modalCopy.book).toast;
-        closeModal();
-        showToast(toastMessage);
-        resetFormState(form);
-        return;
-      }
-
       const submitButton = form.querySelector(".submit-button");
       const originalLabel = submitButton ? submitButton.textContent : "";
       if (submitButton) {
         submitButton.disabled = true;
-        submitButton.textContent = "Считаем твою карту…";
+        submitButton.textContent = "Считаем карту…";
       }
 
-      const read = (name) => {
-        const field = form.querySelector(`[name="${name}"]`);
-        return field ? field.value.trim() : "";
-      };
-
-      const payload = {
-        name: read("subject-name") || "Subject",
-        date: normalizeDateForApi(read("birth-date")),
-        time: read("birth-time"),
-        city: read("birth-city")
-      };
+      const panel = ensureResultPanel(form);
 
       try {
-        const response = await fetch(CHART_ENDPOINT, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload)
-        });
-        if (!response.ok) {
-          const detail = await response.json().catch(() => ({}));
-          throw new Error(detail.error || `Ошибка ${response.status}`);
+        if (mode === "compatibility") {
+          const [chartA, chartB] = await Promise.all([
+            fetchChart(readPerson(form, "first")),
+            fetchChart(readPerson(form, "second"))
+          ]);
+          renderCompat(panel, chartA, chartB, mode);
+        } else {
+          const chart = await fetchChart(readPerson(form, ""));
+          renderChart(panel, chart, mode);
         }
-        const chart = await response.json();
-        const panel = ensureResultPanel(form);
-        renderChart(panel, chart);
         form.classList.add("showing-result");
       } catch (error) {
-        const panel = ensureResultPanel(form);
         panel.innerHTML =
           '<div class="chart-result-head"><h3>Не получилось рассчитать карту</h3></div>' +
           `<p class="chart-error">${escapeHtml(error.message || "Попробуй ещё раз чуть позже.")}</p>` +
