@@ -1,0 +1,611 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Акторы строительного контура — executive brief</title>
+  <style>
+    :root {
+      --paper: #f5f2ea;
+      --surface: #fffaf0;
+      --surface-2: #fbf6ea;
+      --ink-head: #0f0a04;
+      --ink: #1f1a12;
+      --muted: #6b5e48;
+      --rule: #d8cfb8;
+      --sienna: #b36a3f;
+      --red: #a02c2c;
+      --olive: #6b7a3a;
+      --blue: #233b53;
+      --shadow: rgba(64, 48, 28, 0.08);
+      --font: Inter, Arial, Helvetica, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: #e9e3d6;
+      color: var(--ink);
+      font-family: var(--font);
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* Слайды редактируются прямо в блоках section.slide ниже. */
+    .presentation {
+      display: grid;
+      gap: 18px;
+      justify-content: center;
+      padding: 18px;
+    }
+
+    .slide {
+      position: relative;
+      width: 960px;
+      height: 540px;
+      overflow: hidden;
+      background:
+        linear-gradient(90deg, rgba(179, 106, 63, 0.08), transparent 28%),
+        var(--paper);
+      border: 0;
+      outline: 1px solid rgba(107, 94, 72, 0.22);
+      padding: 30px 40px 30px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      page-break-after: always;
+      break-after: page;
+    }
+
+    .slide::before {
+      content: "";
+      position: absolute;
+      left: 42px;
+      top: 0;
+      width: 86px;
+      height: 5px;
+      background: var(--sienna);
+    }
+
+    .topline {
+      display: flex;
+      justify-content: space-between;
+      gap: 24px;
+      align-items: flex-start;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.25;
+    }
+
+    .kicker {
+      color: var(--red);
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      font-size: 12px;
+      margin: 0 0 12px;
+    }
+
+    h1 {
+      margin: 0;
+      max-width: 820px;
+      color: var(--ink-head);
+      font-size: 37px;
+      line-height: 1.04;
+      letter-spacing: 0;
+      font-weight: 760;
+    }
+
+    .lead {
+      margin: 13px 0 0;
+      max-width: 770px;
+      color: var(--muted);
+      font-size: 18px;
+      line-height: 1.34;
+      font-weight: 450;
+    }
+
+    .title-wrap { margin-top: 4px; }
+
+    .role-map {
+      display: grid;
+      grid-template-columns: 1fr 1.35fr 1fr;
+      gap: 16px;
+      margin-top: 22px;
+    }
+
+    .role-box,
+    .metric-card,
+    .split-card,
+    .actor-card,
+    .decision-card {
+      background: rgba(255, 250, 240, 0.76);
+      border: 1px solid var(--rule);
+      box-shadow: 0 10px 28px var(--shadow);
+    }
+
+    .role-box {
+      min-height: 118px;
+      padding: 16px 16px 14px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .box-title {
+      color: var(--ink-head);
+      font-size: 18px;
+      font-weight: 760;
+      line-height: 1.15;
+      margin: 0;
+    }
+
+    .box-text {
+      margin: 12px 0 0;
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.32;
+    }
+
+    .tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 14px;
+    }
+
+    .tag {
+      border: 1px solid rgba(107, 122, 58, 0.38);
+      background: rgba(107, 122, 58, 0.08);
+      color: var(--ink);
+      padding: 6px 9px;
+      font-size: 14px;
+      line-height: 1;
+      font-weight: 650;
+    }
+
+    .metric-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    .metric-card {
+      padding: 14px 14px 13px;
+      min-height: 174px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .actor-name {
+      color: var(--red);
+      font-size: 13px;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      font-weight: 760;
+      margin: 0 0 10px;
+    }
+
+    .big-number {
+      color: var(--ink-head);
+      font-size: 34px;
+      line-height: 1;
+      font-weight: 780;
+      margin: 0;
+    }
+
+    .number-label {
+      margin: 6px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.26;
+    }
+
+    .mini-facts {
+      display: grid;
+      gap: 6px;
+      margin-top: 10px;
+      padding-top: 9px;
+      border-top: 1px solid var(--rule);
+    }
+
+    .mini-fact {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      font-size: 13px;
+      line-height: 1.2;
+      color: var(--muted);
+    }
+
+    .mini-fact strong {
+      color: var(--ink-head);
+      white-space: nowrap;
+    }
+
+    .callout {
+      margin-top: 12px;
+      background: rgba(250, 245, 230, 0.9);
+      border-left: 5px solid var(--sienna);
+      padding: 10px 14px;
+      color: var(--ink);
+      font-size: 16px;
+      line-height: 1.25;
+      max-width: 820px;
+    }
+
+    .split {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+      margin-top: 18px;
+    }
+
+    .split-card {
+      min-height: 232px;
+      padding: 18px 18px 16px;
+    }
+
+    .kpi-line {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 9px;
+      margin: 13px 0 12px;
+    }
+
+    .kpi {
+      border-top: 3px solid var(--rule);
+      padding-top: 8px;
+    }
+
+    .kpi strong {
+      display: block;
+      color: var(--ink-head);
+      font-size: 24px;
+      line-height: 1;
+      margin-bottom: 5px;
+    }
+
+    .kpi span {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.16;
+      display: block;
+    }
+
+    .plain-list {
+      margin: 13px 0 0;
+      padding: 0;
+      list-style: none;
+      display: grid;
+      gap: 8px;
+      color: var(--ink);
+      font-size: 15px;
+      line-height: 1.28;
+    }
+
+    .plain-list li {
+      position: relative;
+      padding-left: 15px;
+    }
+
+    .plain-list li::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 0.55em;
+      width: 6px;
+      height: 6px;
+      background: var(--olive);
+    }
+
+    .actor-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-top: 17px;
+    }
+
+    .actor-card {
+      min-height: 196px;
+      padding: 13px 12px 12px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .actor-card .box-title {
+      font-size: 17px;
+    }
+
+    .actor-card .box-text {
+      font-size: 12.8px;
+      line-height: 1.25;
+    }
+
+    .emph {
+      color: var(--ink-head);
+      font-size: 22px;
+      line-height: 1.08;
+      font-weight: 780;
+      margin: 0;
+    }
+
+    .decision-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 16px;
+      margin-top: 20px;
+    }
+
+    .decision-card {
+      min-height: 170px;
+      padding: 16px;
+    }
+
+    .decision-card p:last-child {
+      margin-bottom: 0;
+    }
+
+    .source {
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.25;
+      max-width: 760px;
+    }
+
+    .slide-number {
+      position: absolute;
+      right: 30px;
+      bottom: 22px;
+      color: var(--muted);
+      opacity: 0.75;
+      font-size: 12px;
+      line-height: 1;
+    }
+
+    @media print {
+      @page {
+        size: 960px 540px;
+        margin: 0;
+      }
+
+      body {
+        background: #fff;
+      }
+
+      .presentation {
+        display: block;
+        padding: 0;
+      }
+
+      .slide {
+        border: 0;
+        width: 960px;
+        height: 540px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="presentation">
+    <section class="slide">
+      <div>
+        <div class="topline">
+          <span>Аналитическая карта</span>
+          <span>Папка 02_Акторы · master · 03.07.2026</span>
+        </div>
+        <div class="title-wrap">
+          <p class="kicker">Главный вывод</p>
+          <h1>Акторы образуют систему разных управленческих рычагов</h1>
+          <p class="lead">В периметре есть регуляторы, проектные заказчики, институты развития и держатели данных. Управлять контуром нужно через роли и пересечения, а не через единый список организаций.</p>
+        </div>
+        <div class="role-map">
+          <div class="role-box">
+            <div>
+              <p class="box-title">Правила и целеполагание</p>
+              <p class="box-text">Задают нормативную рамку, стратегию, поручения и критерии результата.</p>
+            </div>
+            <div class="tags">
+              <span class="tag">Минстрой</span>
+              <span class="tag">Росреестр</span>
+            </div>
+          </div>
+          <div class="role-box">
+            <div>
+              <p class="box-title">Проектная реализация и институты</p>
+              <p class="box-text">Держат стройку, инфраструктуру, финансирование, техзаказчика и операционные программы.</p>
+            </div>
+            <div class="tags">
+              <span class="tag">Единый заказчик</span>
+              <span class="tag">ФРТ</span>
+              <span class="tag">Автодор</span>
+              <span class="tag">ДОМ.РФ</span>
+            </div>
+          </div>
+          <div class="role-box">
+            <div>
+              <p class="box-title">Данные и кадастровый контур</p>
+              <p class="box-text">Формируют базу для регистрации, кадастра, НСПД и цифровых сервисов.</p>
+            </div>
+            <div class="tags">
+              <span class="tag">Роскадастр</span>
+              <span class="tag">Росреестр</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="source">Источник: дерево папки 02_Акторы в репозитории timofeyrsk/proektnyy-ofis-hranilishche.</div>
+    </section>
+
+    <section class="slide">
+      <div>
+        <div class="topline">
+          <span>Организационный резерв</span>
+          <span>Источники: Минстрой · ЕЗС · ФРТ</span>
+        </div>
+        <p class="kicker">Диагностика</p>
+        <h1>Оптимизация лежит в структуре, а не в снятии вакансий</h1>
+        <div class="metric-row">
+          <article class="metric-card">
+            <div>
+              <p class="actor-name">Минстрой</p>
+              <p class="big-number">58 / 115</p>
+              <p class="number-label">отделов недоукомплектованы ниже норматива занятых ставок</p>
+            </div>
+            <div class="mini-facts">
+              <div class="mini-fact"><span>Штат ЦА</span><strong>697</strong></div>
+              <div class="mini-fact"><span>Замещено</span><strong>612</strong></div>
+              <div class="mini-fact"><span>Вакантно</span><strong>85</strong></div>
+            </div>
+          </article>
+          <article class="metric-card">
+            <div>
+              <p class="actor-name">Единый заказчик</p>
+              <p class="big-number">30,8%</p>
+              <p class="number-label">фактической численности приходится на административно-управленческий персонал</p>
+            </div>
+            <div class="mini-facts">
+              <div class="mini-fact"><span>Штат</span><strong>1007</strong></div>
+              <div class="mini-fact"><span>Факт</span><strong>864,5</strong></div>
+              <div class="mini-fact"><span>Вакансии</span><strong>142,5</strong></div>
+            </div>
+          </article>
+          <article class="metric-card">
+            <div>
+              <p class="actor-name">ФРТ</p>
+              <p class="big-number">22–24</p>
+              <p class="number-label">руководителя прямого подчинения у генерального директора</p>
+            </div>
+            <div class="mini-facts">
+              <div class="mini-fact"><span>Штат</span><strong>769</strong></div>
+              <div class="mini-fact"><span>Факт</span><strong>679,6</strong></div>
+              <div class="mini-fact"><span>Вакансии</span><strong>≈89</strong></div>
+            </div>
+          </article>
+        </div>
+        <div class="callout">Вывод: вакансии дают быструю правку штата, устойчивый эффект — укрупнение звеньев и снижение дублей.</div>
+      </div>
+      <div class="source">Источники: Минстрой sec2_compact.md и sec5_konsolidaciya.md; ЕЗС KARTA.md; ФРТ KARTA.md.</div>
+      <div class="slide-number">2 / 5</div>
+    </section>
+
+    <section class="slide">
+      <div>
+        <div class="topline">
+          <span>Земля, регистрация и кадастр</span>
+          <span>Источники: Росреестр · Роскадастр</span>
+        </div>
+        <p class="kicker">Сравнение контуров</p>
+        <h1>Контур земли и регистрации масштабен, но стратегии различаются</h1>
+        <div class="split">
+          <article class="split-card">
+            <p class="actor-name">Росреестр</p>
+            <p class="box-title">Проект стратегии слабее масштаба нагрузки</p>
+            <div class="kpi-line">
+              <div class="kpi"><strong>26 124</strong><span>штат, ЦА + ТО</span></div>
+              <div class="kpi"><strong>23 545</strong><span>факт</span></div>
+              <div class="kpi"><strong>2579</strong><span>вакансии</span></div>
+            </div>
+            <ul class="plain-list">
+              <li>Аудит проекта стратегии: 4,5 / 10.</li>
+              <li>Нет финансово-экономического обоснования, сценариев и заполненного блока ожидаемых результатов.</li>
+              <li>Нагрузка растёт: услуги ×4,2, нагрузка ×3.</li>
+            </ul>
+          </article>
+          <article class="split-card">
+            <p class="actor-name">Роскадастр</p>
+            <p class="box-title">База шире: численность, финансы, процессы, контроль</p>
+            <div class="kpi-line">
+              <div class="kpi"><strong>22 608,2</strong><span>штат РФ</span></div>
+              <div class="kpi"><strong>18 357</strong><span>факт</span></div>
+              <div class="kpi"><strong>5138,5</strong><span>вакансии</span></div>
+            </div>
+            <ul class="plain-list">
+              <li>Филиальная сеть: 106 филиалов, включая территориальные и спецпроизводства.</li>
+              <li>Экономия от структурных мер оценена в 2,3–2,8 млрд ₽/год к 2028–2029.</li>
+              <li>Анализ стоит на численности, финансах, функциях, процессах, КПЭ и контроле.</li>
+            </ul>
+          </article>
+        </div>
+      </div>
+      <div class="source">Источники: Росреестр KARTA.md; Роскадастр KARTA.md.</div>
+      <div class="slide-number">3 / 5</div>
+    </section>
+
+    <section class="slide">
+      <div>
+        <div class="topline">
+          <span>Проектные институты</span>
+          <span>Источники: ЕЗС · ФРТ · Автодор · ДОМ.РФ</span>
+        </div>
+        <p class="kicker">Паттерн</p>
+        <h1>Проектные институты повторяют паттерн дублей и управленческого верха</h1>
+        <div class="actor-grid">
+          <article class="actor-card">
+            <div>
+              <p class="actor-name">ЕЗС</p>
+              <p class="emph">31 подразделение</p>
+              <p class="box-text">9 заместителей, 3 блока состоят из одной дирекции. Резерв лежит в АУП и консолидации дирекций.</p>
+            </div>
+          </article>
+          <article class="actor-card">
+            <div>
+              <p class="actor-name">ФРТ</p>
+              <p class="emph">49 ССП</p>
+              <p class="box-text">19 операционных ССП меньше 10 ставок, 7 меньше 5. Цифровая карта: 23 проекта и 6 ИИ-агентов.</p>
+            </div>
+          </article>
+          <article class="actor-card">
+            <div>
+              <p class="actor-name">Автодор</p>
+              <p class="emph">816 факт</p>
+              <p class="box-text">Аппарат 873→822→816. Предложение ГК 716 не достигает −15%, РК 694,6 достигает цель.</p>
+            </div>
+          </article>
+          <article class="actor-card">
+            <div>
+              <p class="actor-name">ДОМ.РФ</p>
+              <p class="emph">2030 / 2036</p>
+              <p class="box-text">Стратегия закрывает жильё, аренду, инфраструктуру, ипотеку, секьюритизацию и цифровую трансформацию.</p>
+            </div>
+          </article>
+        </div>
+        <div class="callout">Вывод: сравнивать нужно штат, мандат, дочерние контуры, цифровую программу и дубли функций.</div>
+      </div>
+      <div class="source">Источники: ЕЗС KARTA.md; ФРТ KARTA.md; Автодор KARTA.md; ДОМ.РФ Strategy 2030 README и извлечённый текст стратегии.</div>
+      <div class="slide-number">4 / 5</div>
+    </section>
+
+    <section class="slide">
+      <div>
+        <div class="topline">
+          <span>Решение</span>
+          <span>Следующий аналитический слой</span>
+        </div>
+        <p class="kicker">Что утвердить</p>
+        <h1>Следующий шаг — собрать единую матрицу ролей, пересечений и решений</h1>
+        <div class="decision-grid">
+          <article class="decision-card">
+            <p class="box-title">Зафиксировать роль каждого актора</p>
+            <p class="box-text">Развести регулятора, заказчика, оператора данных, институт развития, техзаказчика и держателя цифровых сервисов.</p>
+          </article>
+          <article class="decision-card">
+            <p class="box-title">Найти зоны пересечения функций</p>
+            <p class="box-text">Сопоставить дубли по строительству, кадастру, цифровизации, мониторингу, финансам и правовому сопровождению.</p>
+          </article>
+          <article class="decision-card">
+            <p class="box-title">Отделить быстрый резерв от структурного</p>
+            <p class="box-text">Вакансии дают быструю правку штата; устойчивый эффект требует консолидации звеньев и пересмотра мандатов.</p>
+          </article>
+        </div>
+        <div class="callout">Ожидаемое решение: подтвердить карту акторов как основу для следующего пакета — матрицы «мандат × ресурсы × цифровые сервисы × риски дублей».</div>
+      </div>
+      <div class="source">Источники: сводный анализ KARTA.md и машиночитаемых отчётов по акторам из папки 02_Акторы.</div>
+      <div class="slide-number">5 / 5</div>
+    </section>
+  </main>
+</body>
+</html>

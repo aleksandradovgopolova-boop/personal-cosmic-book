@@ -1,0 +1,1174 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Нити — инвестиционная презентация</title>
+  <style>
+    :root {
+      --bg: #10100f;
+      --paper: #f5f1ea;
+      --paper-2: #ebe5da;
+      --ink: #f8f4ed;
+      --ink-soft: #b9b0a6;
+      --text: #181715;
+      --muted: #786f66;
+      --red: #d64232;
+      --red-soft: #f3d8d4;
+      --violet: #7a6ee6;
+      --green: #5ab083;
+      --amber: #d99a3c;
+      --blue: #5e9fc8;
+      --line: rgba(214, 66, 50, 0.48);
+      --border-dark: rgba(255, 255, 255, 0.12);
+      --border-light: rgba(24, 23, 21, 0.12);
+      --radius: 18px;
+      --font-heading: Georgia, "Times New Roman", serif;
+      --font-body: "Inter", "Segoe UI", Arial, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+      min-height: 100%;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: var(--font-body);
+    }
+
+    body {
+      overflow: hidden;
+    }
+
+    .presentation {
+      width: 100vw;
+      height: 100vh;
+      background: var(--bg);
+    }
+
+    /* Базовый формат слайда: 16:9, единая сетка, без внешних зависимостей. */
+    .slide {
+      display: none;
+      position: relative;
+      width: 100%;
+      min-height: 100vh;
+      padding: 58px 76px 72px;
+      overflow: hidden;
+      background: var(--bg);
+    }
+
+    .slide.active {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 28px;
+    }
+
+    .slide.light {
+      background: var(--paper);
+      color: var(--text);
+    }
+
+    .slide.light::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background:
+        linear-gradient(90deg, rgba(214, 66, 50, 0.08), transparent 28%),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.66), transparent 38%);
+    }
+
+    .slide > * {
+      position: relative;
+      z-index: 1;
+    }
+
+    .topline {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+      min-height: 34px;
+    }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      color: inherit;
+      font-family: var(--font-heading);
+      font-style: italic;
+      font-size: 33px;
+      line-height: 1;
+      letter-spacing: 0;
+    }
+
+    .brand-mark {
+      width: 42px;
+      height: 42px;
+      overflow: visible;
+    }
+
+    .kicker,
+    .meta {
+      margin: 0;
+      color: var(--red);
+      font-size: 15px;
+      font-weight: 600;
+      letter-spacing: 0;
+    }
+
+    .meta {
+      color: var(--ink-soft);
+      font-weight: 500;
+    }
+
+    .light .meta {
+      color: var(--muted);
+    }
+
+    h1,
+    h2,
+    h3,
+    p {
+      margin: 0;
+    }
+
+    h1 {
+      max-width: 980px;
+      color: inherit;
+      font-family: var(--font-heading);
+      font-size: clamp(42px, 5.35vw, 78px);
+      line-height: 1.04;
+      font-weight: 700;
+      letter-spacing: 0;
+    }
+
+    .light h1 {
+      color: var(--text);
+    }
+
+    .lead {
+      max-width: 900px;
+      color: var(--ink-soft);
+      font-size: 25px;
+      line-height: 1.36;
+    }
+
+    .light .lead {
+      color: var(--muted);
+    }
+
+    .accent-line {
+      width: min(680px, 62vw);
+      border-top: 3px solid var(--red);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 18px;
+      width: 100%;
+    }
+
+    .grid.two {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .grid.four {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .panel {
+      min-height: 150px;
+      padding: 23px;
+      border-radius: var(--radius);
+      background: rgba(255, 255, 255, 0.045);
+      border: 1px solid var(--border-dark);
+    }
+
+    .light .panel {
+      background: rgba(255, 255, 255, 0.74);
+      border-color: var(--border-light);
+    }
+
+    .panel.red {
+      background: var(--red);
+      color: #fff;
+      border-color: var(--red);
+    }
+
+    .panel.dark {
+      background: #151514;
+      color: var(--ink);
+      border-color: #151514;
+    }
+
+    .panel h2 {
+      margin-bottom: 10px;
+      color: inherit;
+      font-size: 25px;
+      line-height: 1.18;
+      font-weight: 650;
+      letter-spacing: 0;
+    }
+
+    .panel p,
+    .panel li {
+      color: inherit;
+      font-size: 18px;
+      line-height: 1.43;
+    }
+
+    .muted,
+    .panel .muted {
+      color: var(--ink-soft);
+    }
+
+    .light .muted,
+    .light .panel .muted {
+      color: var(--muted);
+    }
+
+    ul {
+      margin: 0;
+      padding-left: 20px;
+    }
+
+    li + li {
+      margin-top: 8px;
+    }
+
+    .big-number {
+      display: block;
+      margin-bottom: 8px;
+      color: var(--red);
+      font-family: var(--font-heading);
+      font-size: clamp(48px, 6vw, 86px);
+      line-height: 0.95;
+      letter-spacing: 0;
+    }
+
+    .metric-note {
+      color: inherit;
+      font-size: 18px;
+      line-height: 1.38;
+    }
+
+    .source-note {
+      max-width: 1080px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.35;
+    }
+
+    .dark-note {
+      color: var(--ink-soft);
+    }
+
+    .hero-graph {
+      position: absolute;
+      right: 82px;
+      top: 104px;
+      width: 340px;
+      height: 340px;
+      opacity: 0.92;
+    }
+
+    .hero-footer {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      display: flex;
+      justify-content: space-between;
+      padding: 22px 78px;
+      color: var(--ink-soft);
+      background: rgba(255, 255, 255, 0.16);
+      font-size: 19px;
+    }
+
+    .split {
+      display: grid;
+      grid-template-columns: 1.05fr 0.95fr;
+      gap: 28px;
+      align-items: stretch;
+      width: 100%;
+    }
+
+    .quote {
+      padding: 30px;
+      border-left: 5px solid var(--red);
+      background: rgba(214, 66, 50, 0.08);
+      font-family: var(--font-heading);
+      font-size: 34px;
+      line-height: 1.18;
+    }
+
+    .product-flow {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 18px;
+      align-items: end;
+    }
+
+    .phone {
+      height: 330px;
+      padding: 14px;
+      border: 10px solid #3a3936;
+      border-radius: 18px;
+      background: #1c1d1b;
+    }
+
+    .phone-bar,
+    .phone-card {
+      border: 2px solid currentColor;
+      background: color-mix(in srgb, currentColor 22%, transparent);
+    }
+
+    .phone-bar {
+      height: 42px;
+      margin-bottom: 18px;
+    }
+
+    .phone-card {
+      height: 116px;
+      margin-top: 108px;
+    }
+
+    .flow-label {
+      margin-top: 18px;
+      text-align: center;
+    }
+
+    .flow-label strong {
+      display: block;
+      margin-bottom: 6px;
+      color: var(--ink);
+      font-size: 21px;
+    }
+
+    .dark-flow .flow-label strong {
+      color: var(--ink);
+    }
+
+    .flow-label span {
+      color: var(--muted);
+      font-size: 16px;
+      line-height: 1.3;
+    }
+
+    .matrix {
+      width: 100%;
+      border-collapse: collapse;
+      overflow: hidden;
+      border-radius: var(--radius);
+      background: rgba(255, 255, 255, 0.7);
+      font-size: 18px;
+    }
+
+    .matrix th,
+    .matrix td {
+      padding: 14px 12px;
+      border-bottom: 1px solid var(--border-light);
+      text-align: center;
+    }
+
+    .matrix th:first-child,
+    .matrix td:first-child {
+      text-align: left;
+      width: 22%;
+      font-weight: 700;
+    }
+
+    .matrix thead th {
+      color: #fff;
+      background: #171716;
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    .matrix tr.highlight {
+      background: var(--red-soft);
+    }
+
+    .check {
+      color: var(--green);
+      font-size: 25px;
+      font-weight: 700;
+    }
+
+    .dash {
+      color: #9d958d;
+    }
+
+    .timeline {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 20px;
+      width: 100%;
+    }
+
+    .phase {
+      min-height: 290px;
+      padding: 24px;
+      background: #2c2b28;
+      border-top: 6px solid var(--red);
+      border-radius: 0 0 var(--radius) var(--radius);
+    }
+
+    .phase:nth-child(2) {
+      border-top-color: var(--violet);
+    }
+
+    .phase:nth-child(3) {
+      border-top-color: var(--green);
+    }
+
+    .phase h2 {
+      margin-bottom: 6px;
+      color: #fff;
+      font-size: 27px;
+    }
+
+    .phase .period {
+      display: block;
+      margin-bottom: 18px;
+      color: var(--ink-soft);
+      font-size: 17px;
+    }
+
+    .phase li {
+      color: #eee8df;
+      font-size: 18px;
+    }
+
+    .pricing {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 20px;
+      width: 100%;
+    }
+
+    .price {
+      min-height: 330px;
+      padding: 28px;
+      background: #dfd7ca;
+      color: var(--text);
+      border-radius: 0;
+    }
+
+    .price.pro {
+      background: var(--red);
+      color: #fff;
+    }
+
+    .price.team {
+      background: #111;
+      color: #fff;
+    }
+
+    .price h2 {
+      font-size: 28px;
+      margin-bottom: 16px;
+    }
+
+    .price strong {
+      display: block;
+      margin-bottom: 22px;
+      font-family: var(--font-heading);
+      font-size: 44px;
+      letter-spacing: 0;
+    }
+
+    .bar-table {
+      display: grid;
+      gap: 18px;
+    }
+
+    .bar-row {
+      display: grid;
+      grid-template-columns: 120px 1fr 1.2fr;
+      gap: 18px;
+      align-items: center;
+    }
+
+    .bar-value {
+      color: var(--red);
+      font-family: var(--font-heading);
+      font-size: 54px;
+      line-height: 1;
+    }
+
+    .bar {
+      height: 12px;
+      background: rgba(255, 255, 255, 0.12);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .bar span {
+      display: block;
+      height: 100%;
+      background: var(--red);
+    }
+
+    .ask {
+      display: grid;
+      grid-template-columns: 1.05fr 0.95fr;
+      gap: 26px;
+      width: 100%;
+      align-items: stretch;
+    }
+
+    .ask-box {
+      padding: 34px;
+      border: 2px solid var(--red);
+      background: rgba(214, 66, 50, 0.08);
+      border-radius: var(--radius);
+    }
+
+    .ask-box h2 {
+      margin-bottom: 16px;
+      font-size: 32px;
+    }
+
+    .ask-box p {
+      color: var(--ink);
+      font-size: 24px;
+      line-height: 1.35;
+    }
+
+    .final-card {
+      max-width: 920px;
+      padding: 30px 34px;
+      background: rgba(255, 255, 255, 0.08);
+      border-left: 5px solid var(--red);
+    }
+
+    .final-card p {
+      color: var(--ink-soft);
+      font-size: 24px;
+      line-height: 1.36;
+    }
+
+    .nav {
+      position: fixed;
+      right: 26px;
+      bottom: 22px;
+      z-index: 20;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      padding: 8px 10px;
+      background: rgba(16, 16, 15, 0.72);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: 999px;
+      backdrop-filter: blur(8px);
+    }
+
+    .nav button {
+      width: 40px;
+      height: 34px;
+      color: #fff;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      border-radius: 999px;
+      cursor: pointer;
+      font-size: 18px;
+    }
+
+    .nav button:disabled {
+      opacity: 0.45;
+      cursor: default;
+    }
+
+    .slide-counter {
+      min-width: 56px;
+      color: #d9d1c8;
+      font-size: 14px;
+      text-align: center;
+    }
+
+    @media (max-width: 920px) {
+      body {
+        overflow: auto;
+      }
+
+      .presentation {
+        height: auto;
+      }
+
+      .slide {
+        padding: 40px 24px 92px;
+        min-height: 100vh;
+      }
+
+      .slide.active {
+        justify-content: flex-start;
+      }
+
+      .topline,
+      .hero-footer {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .hero-graph {
+        display: none;
+      }
+
+      .hero-footer {
+        position: relative;
+        margin: 24px -24px -92px;
+        padding: 18px 24px;
+      }
+
+      .grid,
+      .grid.two,
+      .grid.four,
+      .split,
+      .product-flow,
+      .timeline,
+      .pricing,
+      .ask {
+        grid-template-columns: 1fr;
+      }
+
+      .bar-row {
+        grid-template-columns: 1fr;
+      }
+
+      .phone {
+        height: 260px;
+      }
+    }
+
+    @media print {
+      @page {
+        size: A4 landscape;
+        margin: 0;
+      }
+
+      body {
+        overflow: visible;
+        background: #fff;
+      }
+
+      .presentation {
+        width: auto;
+        height: auto;
+      }
+
+      .slide {
+        display: flex !important;
+        flex-direction: column;
+        justify-content: center;
+        gap: 28px;
+        height: 100vh;
+        min-height: 0;
+        overflow: hidden;
+        page-break-after: always;
+        break-after: page;
+        break-inside: avoid;
+        print-color-adjust: exact;
+        -webkit-print-color-adjust: exact;
+      }
+
+      .nav {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="presentation">
+    <section class="slide active">
+      <div class="topline">
+        <div class="brand">
+          <svg class="brand-mark" viewBox="0 0 100 100" aria-hidden="true">
+            <path d="M14 82 V18 C14 15 18 13 21 16 L79 76 C82 79 87 77 87 72 V18" fill="none" stroke="var(--red)" stroke-width="9" stroke-linecap="round"/>
+            <circle cx="14" cy="82" r="7" fill="var(--red)"/>
+            <circle cx="87" cy="18" r="7" fill="var(--red)"/>
+          </svg>
+          <span>нити</span>
+        </div>
+        <p class="meta">Инвестиционная презентация · июль 2026 · конфиденциально</p>
+      </div>
+      <h1>Нити превращают поток мыслей в управляемую ИИ-память</h1>
+      <div class="accent-line"></div>
+      <p class="lead">Простой российский продукт для заметок, ссылок и медиа, который сам находит связи и помогает возвращаться к идеям.</p>
+      <svg class="hero-graph" viewBox="0 0 360 360" aria-hidden="true">
+        <g stroke="rgba(255,255,255,0.22)" stroke-width="1">
+          <path d="M80 260 L160 150 L240 210 L308 118"/>
+          <path d="M160 150 L165 70 L250 70"/>
+          <path d="M240 210 L280 300"/>
+          <path d="M80 260 L42 185"/>
+        </g>
+        <circle cx="160" cy="150" r="17" fill="var(--red)"/>
+        <circle cx="240" cy="210" r="14" fill="var(--violet)"/>
+        <circle cx="80" cy="260" r="12" fill="var(--amber)"/>
+        <circle cx="42" cy="185" r="12" fill="var(--green)"/>
+        <circle cx="308" cy="118" r="8" fill="#fff"/>
+        <circle cx="250" cy="70" r="8" fill="#fff"/>
+        <circle cx="280" cy="300" r="10" fill="var(--red)"/>
+      </svg>
+      <div class="hero-footer">
+        <span>Где мысли становятся ясными</span>
+        <span>niti.app · hello@niti.app</span>
+      </div>
+    </section>
+
+    <section class="slide light">
+      <div class="topline">
+        <p class="kicker">Инвестиционный тезис</p>
+        <p class="meta">Раунд: ₽12M / горизонт: 12 месяцев</p>
+      </div>
+      <h1>Нити заходят в момент, когда пользователям нужна локальная замена сложным зарубежным инструментам</h1>
+      <div class="grid three">
+        <article class="panel">
+          <span class="big-number">₽12M</span>
+          <p class="metric-note">нужны на 12 месяцев разработки, маркетинга и ИИ-инфраструктуры до публичного запуска.</p>
+        </article>
+        <article class="panel">
+          <span class="big-number">25K</span>
+          <p class="metric-note">целевой ориентир платных пользователей через 12 месяцев после старта в исходной модели.</p>
+        </article>
+        <article class="panel">
+          <span class="big-number">₽180M+</span>
+          <p class="metric-note">целевой ARR при 25 тыс. платящих пользователей и среднем чеке около ₽600 в месяц.</p>
+        </article>
+      </div>
+      <p class="source-note">Цифры по пользователям и ARR являются целевой финансовой моделью из исходной презентации, а не подтверждённым фактическим результатом.</p>
+    </section>
+
+    <section class="slide light">
+      <div class="topline">
+        <p class="kicker">Проблема</p>
+        <p class="meta">Личная база знаний сломана на этапе возврата к идеям</p>
+      </div>
+      <h1>Люди сохраняют мысли быстрее, чем способны ими пользоваться</h1>
+      <div class="grid">
+        <article class="panel">
+          <h2>Заметки превращаются в склад</h2>
+          <p>Apple Заметки и похожие инструменты быстро принимают текст, но через месяц пользователь видит сотни несвязанных фрагментов.</p>
+        </article>
+        <article class="panel">
+          <h2>Закладки не возвращают контекст</h2>
+          <p>Посты, видео и ссылки сохраняются в разных приложениях, а смысл, ради которого их сохранили, теряется.</p>
+        </article>
+        <article class="panel">
+          <h2>Сложные системы забирают энергию</h2>
+          <p>Notion и Obsidian помогают дисциплинированным пользователям, но требуют настроек, папок и правил до начала работы.</p>
+        </article>
+      </div>
+      <div class="quote">Проблема не в нехватке мест для записи. Проблема в том, что идеи не связываются между собой.</div>
+    </section>
+
+    <section class="slide light">
+      <div class="topline">
+        <p class="kicker">Почему сейчас</p>
+        <p class="meta">Спрос на локальные продукты стал практическим, а не идеологическим</p>
+      </div>
+      <h1>Окно для российского продукта открылось из-за трёх сдвигов одновременно</h1>
+      <div class="grid">
+        <article class="panel">
+          <span class="big-number">9.09.24</span>
+          <h2>Notion ограничил российские аккаунты</h2>
+          <p>Для части аудитории вопрос замены перестал быть гипотетическим.</p>
+        </article>
+        <article class="panel">
+          <span class="big-number">65,5M</span>
+          <h2>RuStore стал массовым каналом</h2>
+          <p>Месячная аудитория RuStore в октябре 2025 года достигла 65,5 млн пользователей.</p>
+        </article>
+        <article class="panel">
+          <span class="big-number">+31%</span>
+          <h2>Российское ПО продолжает расти</h2>
+          <p>Рынок корпоративного ПО вырос в 2024 году на 31%, а в 2026 году может достичь 277 млрд рублей.</p>
+        </article>
+      </div>
+      <p class="source-note">Источники: RB.ru о Notion, CNews о RuStore, Коммерсантъ о рынке корпоративного ПО. См. слайд «Источники и допущения».</p>
+    </section>
+
+    <section class="slide">
+      <div class="topline">
+        <p class="kicker">Продукт</p>
+        <p class="meta">Один поток вместо пяти разрозненных привычек</p>
+      </div>
+      <h1>Нити дают пользователю путь от записи мысли до карты смыслов</h1>
+      <div class="product-flow dark-flow">
+        <div>
+          <div class="phone" style="color: var(--red);"><div class="phone-bar"></div><div class="phone-card"></div></div>
+          <p class="flow-label"><strong>Главная</strong><span>поле ввода и первый ИИ-вывод</span></p>
+        </div>
+        <div>
+          <div class="phone" style="color: var(--violet);"><div class="phone-bar"></div><div class="phone-card"></div></div>
+          <p class="flow-label"><strong>Заметка</strong><span>редактор и связанные мысли</span></p>
+        </div>
+        <div>
+          <div class="phone" style="color: var(--green);"><div class="phone-bar"></div><div class="phone-card"></div></div>
+          <p class="flow-label"><strong>Граф</strong><span>визуальная карта мышления</span></p>
+        </div>
+        <div>
+          <div class="phone" style="color: var(--amber);"><div class="phone-bar"></div><div class="phone-card"></div></div>
+          <p class="flow-label"><strong>Темы</strong><span>ИИ-кластеры по смыслу</span></p>
+        </div>
+        <div>
+          <div class="phone" style="color: var(--blue);"><div class="phone-bar"></div><div class="phone-card"></div></div>
+          <p class="flow-label"><strong>Мобайл</strong><span>iOS и Android нативно</span></p>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide light">
+      <div class="topline">
+        <p class="kicker">Позиционирование</p>
+        <p class="meta">Ниша между простыми заметками и сложными базами знаний</p>
+      </div>
+      <h1>Нити конкурируют не количеством функций, а снижением усилия пользователя</h1>
+      <table class="matrix" aria-label="Сравнение Нити с альтернативами">
+        <thead>
+          <tr>
+            <th>Продукт</th>
+            <th>Простота</th>
+            <th>ИИ-связи</th>
+            <th>Красота</th>
+            <th>Рубли/RU</th>
+            <th>Личное + работа</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="highlight">
+            <td>Нити</td>
+            <td class="check">✓</td>
+            <td class="check">✓</td>
+            <td class="check">✓</td>
+            <td class="check">✓</td>
+            <td class="check">✓</td>
+          </tr>
+          <tr>
+            <td>Apple Notes</td>
+            <td class="check">✓</td>
+            <td class="dash">–</td>
+            <td class="check">✓</td>
+            <td class="check">✓</td>
+            <td class="dash">–</td>
+          </tr>
+          <tr>
+            <td>Notion</td>
+            <td class="dash">–</td>
+            <td class="dash">–</td>
+            <td class="dash">–</td>
+            <td class="dash">–</td>
+            <td class="check">✓</td>
+          </tr>
+          <tr>
+            <td>Obsidian</td>
+            <td class="dash">–</td>
+            <td class="dash">–</td>
+            <td class="dash">–</td>
+            <td class="dash">–</td>
+            <td class="check">✓</td>
+          </tr>
+          <tr>
+            <td>mymind / Mem.ai</td>
+            <td class="check">✓</td>
+            <td class="check">✓</td>
+            <td class="check">✓</td>
+            <td class="dash">–</td>
+            <td class="dash">–</td>
+          </tr>
+        </tbody>
+      </table>
+      <p class="source-note">Матрица отражает конкурентную оценку из исходного файла и требует регулярной проверки перед переговорами с инвесторами.</p>
+    </section>
+
+    <section class="slide light">
+      <div class="topline">
+        <p class="kicker">Аудитория</p>
+        <p class="meta">Стартовая ниша: думающие практики 25–45 лет</p>
+      </div>
+      <h1>Первый рост дают люди, для которых мысль сразу становится рабочим активом</h1>
+      <div class="grid two">
+        <article class="panel">
+          <h2>Продакты и аналитики · ~1,8M</h2>
+          <p>Ведут исследования, строят гипотезы, связывают данные с решениями. Им нужна память о рассуждениях, а не только архив файлов.</p>
+        </article>
+        <article class="panel">
+          <h2>Авторы и креаторы · ~2,4M</h2>
+          <p>Собирают идеи из текстов, видео и соцсетей. Главная боль — быстро вернуться к материалу и понять, зачем он был сохранён.</p>
+        </article>
+        <article class="panel">
+          <h2>Саморазвитие · ~3,2M</h2>
+          <p>Читают, рефлексируют, ведут дневники. Простые заметки быстро становятся «мусоркой» без структуры и повторного использования.</p>
+        </article>
+        <article class="panel">
+          <h2>Студенты и учёные · ~1,1M</h2>
+          <p>Работают с источниками, курсовыми и исследованиями. Им важна связь между цитатами, темами и собственными выводами.</p>
+        </article>
+      </div>
+      <p class="source-note">Суммарный адресуемый рынок ~8,5M пользователей — оценка из исходной модели; для инвестиционной проверки нужно подтвердить методику расчёта.</p>
+    </section>
+
+    <section class="slide light">
+      <div class="topline">
+        <p class="kicker">Монетизация</p>
+        <p class="meta">Freemium снижает вход, подписка монетизирует глубину использования</p>
+      </div>
+      <h1>Модель проста для пользователя и даёт понятный путь к ARR</h1>
+      <div class="pricing">
+        <article class="price">
+          <h2>Free</h2>
+          <strong>₽0 / мес</strong>
+          <ul>
+            <li>50 заметок</li>
+            <li>базовые связи</li>
+            <li>3 темы</li>
+            <li>мобайл + веб</li>
+          </ul>
+        </article>
+        <article class="price pro">
+          <h2>Pro</h2>
+          <strong>₽490 / мес</strong>
+          <ul>
+            <li>без лимитов</li>
+            <li>полный ИИ</li>
+            <li>голос и медиа</li>
+            <li>граф и темы</li>
+            <li>приоритет поддержки</li>
+          </ul>
+        </article>
+        <article class="price team">
+          <h2>Team</h2>
+          <strong>₽890 / мес</strong>
+          <ul>
+            <li>всё из Pro</li>
+            <li>до 10 человек</li>
+            <li>общие темы</li>
+            <li>API-доступ</li>
+          </ul>
+        </article>
+      </div>
+      <p class="source-note">ARR ₽180M+ достигается при 25 тыс. платных пользователей и среднем месячном платеже около ₽600. Это целевой сценарий, требующий проверки конверсии и удержания.</p>
+    </section>
+
+    <section class="slide">
+      <div class="topline">
+        <p class="kicker">План роста</p>
+        <p class="meta">12 месяцев до публичного запуска и первых масштабируемых каналов</p>
+      </div>
+      <h1>Дорожная карта ведёт от личного продукта к публичному сервису и командам</h1>
+      <div class="timeline">
+        <article class="phase">
+          <h2>Фаза 1</h2>
+          <span class="period">0–3 месяца</span>
+          <ul>
+            <li>MVP веб + iOS</li>
+            <li>первые 100 пользователей</li>
+            <li>ранний доступ ₽290/мес</li>
+            <li>проверка ключевых сценариев</li>
+          </ul>
+        </article>
+        <article class="phase">
+          <h2>Фаза 2</h2>
+          <span class="period">3–6 месяцев</span>
+          <ul>
+            <li>публичный запуск + RuStore</li>
+            <li>оплата рублями</li>
+            <li>PR как первый российский AI brain</li>
+            <li>цель: 5 тыс. платных</li>
+          </ul>
+        </article>
+        <article class="phase">
+          <h2>Фаза 3</h2>
+          <span class="period">6–12 месяцев</span>
+          <ul>
+            <li>Team-тариф</li>
+            <li>API для интеграций</li>
+            <li>партнёрства с экосистемами</li>
+            <li>цель: 25 тыс. платных</li>
+          </ul>
+        </article>
+      </div>
+    </section>
+
+    <section class="slide light">
+      <div class="topline">
+        <p class="kicker">Go-to-market</p>
+        <p class="meta">Первые пользователи должны видеть не «ещё заметки», а инструмент мышления</p>
+      </div>
+      <h1>Запуск строится вокруг доверия к продукту и демонстрации реальных сценариев</h1>
+      <div class="grid">
+        <article class="panel">
+          <h2>Founder-led контент</h2>
+          <p>Показывать рабочий процесс основателя: как Нити помогают думать, писать, связывать материалы и принимать решения.</p>
+        </article>
+        <article class="panel">
+          <h2>Сообщества практиков</h2>
+          <p>Продакты, аналитики, авторы и студенты быстрее понимают ценность, потому что у них уже есть боль с идеями и источниками.</p>
+        </article>
+        <article class="panel">
+          <h2>Локальные каналы</h2>
+          <p>RuStore, рублёвые платежи, русский интерфейс и отсутствие VPN создают понятное преимущество перед зарубежными сервисами.</p>
+        </article>
+      </div>
+      <div class="quote">Первый маркетинг должен продавать не функцию ИИ, а состояние: «я снова понимаю, что думаю».</div>
+    </section>
+
+    <section class="slide light">
+      <div class="topline">
+        <p class="kicker">Команда</p>
+        <p class="meta">Лин-операционная модель с ИИ-агентами под управлением основателя</p>
+      </div>
+      <h1>Основатель закрывает продуктовую экспертизу, а ИИ снижает стоимость ранней команды</h1>
+      <div class="split">
+        <article class="panel">
+          <h2>Саша Довгополова · CEO & Founder</h2>
+          <ul>
+            <li>Senior PM в ПСБ, корпоративный портал Ньютон для 24K+ сотрудников.</li>
+            <li>5+ лет в Digital Workplace и цифровом опыте сотрудников.</li>
+            <li>Опыт Координационного центра при Правительстве РФ, Диалога и Сбера.</li>
+          </ul>
+        </article>
+        <article class="panel dark">
+          <h2>AI-команда как рычаг</h2>
+          <ul>
+            <li>разработка: Claude Code;</li>
+            <li>продукт и дизайн: Claude + дизайн-пайплайн;</li>
+            <li>маркетинг: Claude + веб-поиск;</li>
+            <li>ИИ-слой: Claude API + embeddings.</li>
+          </ul>
+        </article>
+      </div>
+      <p class="source-note">Для снижения инвестиционного риска стоит добавить технического советника или fractional CTO перед масштабированием инфраструктуры и безопасности.</p>
+    </section>
+
+    <section class="slide">
+      <div class="topline">
+        <p class="kicker">Использование средств</p>
+        <p class="meta">Раунд должен купить проверку продукта, каналов и экономики</p>
+      </div>
+      <h1>₽12M хватает на 12 месяцев до публичного запуска и первых платных когорт</h1>
+      <div class="bar-table">
+        <div class="bar-row">
+          <span class="bar-value">45%</span>
+          <div class="bar"><span style="width:45%"></span></div>
+          <p><strong>Разработка:</strong> продуктовая команда и инфраструктура.</p>
+        </div>
+        <div class="bar-row">
+          <span class="bar-value">30%</span>
+          <div class="bar"><span style="width:30%"></span></div>
+          <p><strong>Маркетинг:</strong> привлечение пользователей, PR, запуск ожидания и раннего доступа.</p>
+        </div>
+        <div class="bar-row">
+          <span class="bar-value">15%</span>
+          <div class="bar"><span style="width:15%"></span></div>
+          <p><strong>ИИ-слой:</strong> Claude API, embeddings, хранение и обработка смысловых связей.</p>
+        </div>
+        <div class="bar-row">
+          <span class="bar-value">10%</span>
+          <div class="bar"><span style="width:10%"></span></div>
+          <p><strong>Операции:</strong> юридические задачи, аналитика, офисные и административные расходы.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide light">
+      <div class="topline">
+        <p class="kicker">Источники и допущения</p>
+        <p class="meta">Факты отделены от целевой модели</p>
+      </div>
+      <h1>Перед подписанием раунда нужно подтвердить три группы предпосылок</h1>
+      <div class="grid">
+        <article class="panel">
+          <h2>Проверенные внешние факты</h2>
+          <ul>
+            <li>Notion объявил ограничения для российских аккаунтов с сентября 2024 года.</li>
+            <li>RuStore сообщил о 65,5 млн ежемесячных пользователей в октябре 2025 года.</li>
+            <li>Российский рынок корпоративного ПО рос в 2024 году и продолжает расширяться.</li>
+          </ul>
+        </article>
+        <article class="panel">
+          <h2>Внутренние оценки</h2>
+          <ul>
+            <li>8,5M потенциальных пользователей.</li>
+            <li>25K платных пользователей через 12 месяцев.</li>
+            <li>ARR ₽180M+ при среднем платеже около ₽600 в месяц.</li>
+          </ul>
+        </article>
+        <article class="panel">
+          <h2>Что проверить перед раундом</h2>
+          <ul>
+            <li>методику TAM по сегментам;</li>
+            <li>конверсию Free → Pro и удержание;</li>
+            <li>стоимость ИИ-запросов и маржинальность Pro/Team.</li>
+          </ul>
+        </article>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div class="topline">
+        <div class="brand">
+          <svg class="brand-mark" viewBox="0 0 100 100" aria-hidden="true">
+            <path d="M14 82 V18 C14 15 18 13 21 16 L79 76 C82 79 87 77 87 72 V18" fill="none" stroke="var(--red)" stroke-width="9" stroke-linecap="round"/>
+            <circle cx="14" cy="82" r="7" fill="var(--red)"/>
+            <circle cx="87" cy="18" r="7" fill="var(--red)"/>
+          </svg>
+          <span>нити</span>
+        </div>
+        <p class="meta">niti.app · hello@niti.app</p>
+      </div>
+      <h1>Следующий шаг — согласовать условия инвестиций и проверить ключевые предпосылки</h1>
+      <div class="accent-line"></div>
+      <div class="final-card">
+        <p>Запрос: обсудить инвестиции ₽12M на 12 месяцев, подтвердить ключевые предпосылки модели и зафиксировать план выхода к публичному запуску.</p>
+      </div>
+    </section>
+  </main>
+
+  <nav class="nav" aria-label="Навигация по презентации">
+    <button id="prev" type="button" aria-label="Предыдущий слайд">←</button>
+    <span class="slide-counter"><span id="current">1</span> / <span id="total">14</span></span>
+    <button id="next" type="button" aria-label="Следующий слайд">→</button>
+  </nav>
+
+  <script>
+    // Навигация по слайдам кнопками и стрелками клавиатуры.
+    const slides = Array.from(document.querySelectorAll(".slide"));
+    const current = document.getElementById("current");
+    const total = document.getElementById("total");
+    const prev = document.getElementById("prev");
+    const next = document.getElementById("next");
+    let index = 0;
+
+    total.textContent = slides.length;
+
+    function showSlide(nextIndex) {
+      slides[index].classList.remove("active");
+      index = Math.max(0, Math.min(slides.length - 1, nextIndex));
+      slides[index].classList.add("active");
+      current.textContent = index + 1;
+      prev.disabled = index === 0;
+      next.disabled = index === slides.length - 1;
+    }
+
+    prev.addEventListener("click", () => showSlide(index - 1));
+    next.addEventListener("click", () => showSlide(index + 1));
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "ArrowRight" || event.key === "PageDown") showSlide(index + 1);
+      if (event.key === "ArrowLeft" || event.key === "PageUp") showSlide(index - 1);
+      if (event.key === "Home") showSlide(0);
+      if (event.key === "End") showSlide(slides.length - 1);
+    });
+
+    showSlide(0);
+  </script>
+</body>
+</html>

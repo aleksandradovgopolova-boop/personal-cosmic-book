@@ -1,0 +1,881 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Нити — инвестиционная презентация</title>
+  <style>
+    :root {
+      --ink-head: #0f0a04;
+      --ink: #1f1a12;
+      --ink-mute: #6b5e48;
+      --sienna: #b36a3f;
+      --red: #a02c2c;
+      --olive: #6b7a3a;
+      --bg-paper: #f5f2ea;
+      --bg-callout: #faf5e6;
+      --surface: #fffdf8;
+      --rule: #d8cfb8;
+      --blue: #14213d;
+      --font: Inter, Arial, Helvetica, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      --page-w: 13.333in;
+      --page-h: 7.5in;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+      background: #e7e2d8;
+      color: var(--ink);
+      font-family: var(--font);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .presentation {
+      width: 100%;
+    }
+
+    /* Слайды редактируются прямо в разметке: каждый section.slide = одна страница 16:9. */
+    .slide {
+      position: relative;
+      width: var(--page-w);
+      height: var(--page-h);
+      margin: 22px auto;
+      padding: 0.58in 0.72in 0.58in;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      gap: 0.24in;
+      background: var(--bg-paper);
+      box-shadow: 0 10px 30px rgba(31, 26, 18, 0.18);
+    }
+
+    .slide.cover {
+      justify-content: space-between;
+      background: linear-gradient(90deg, #f8f4eb 0%, #f5f2ea 58%, #efe6d6 100%);
+    }
+
+    .slide-number {
+      position: absolute;
+      right: 0.42in;
+      bottom: 0.26in;
+      color: var(--ink-mute);
+      font-size: 14px;
+      line-height: 1;
+      opacity: 0.72;
+    }
+
+    .topline {
+      display: flex;
+      justify-content: space-between;
+      gap: 24px;
+      align-items: flex-start;
+      min-height: 28px;
+    }
+
+    .eyebrow {
+      margin: 0;
+      color: var(--red);
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+    }
+
+    .source {
+      max-width: 460px;
+      margin: 0;
+      color: var(--ink-mute);
+      font-size: 13px;
+      line-height: 1.25;
+      text-align: right;
+    }
+
+    h1 {
+      max-width: 10.4in;
+      margin: 0;
+      color: var(--ink-head);
+      font-size: 42px;
+      line-height: 1.05;
+      font-weight: 650;
+      letter-spacing: 0;
+    }
+
+    .cover h1 {
+      max-width: 8.6in;
+      font-size: 56px;
+      line-height: 1.02;
+    }
+
+    .subtitle {
+      max-width: 8.7in;
+      margin: 0;
+      color: var(--ink-mute);
+      font-size: 23px;
+      line-height: 1.35;
+    }
+
+    .body {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 0.22in;
+    }
+
+    .grid {
+      display: grid;
+      gap: 0.16in;
+    }
+
+    .grid.three {
+      grid-template-columns: repeat(3, 1fr);
+    }
+
+    .grid.two {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .grid.four {
+      grid-template-columns: repeat(4, 1fr);
+    }
+
+    .tile {
+      min-height: 1.36in;
+      padding: 0.18in;
+      background: var(--surface);
+      border: 1px solid var(--rule);
+      border-top: 5px solid var(--rule);
+    }
+
+    .tile.accent {
+      border-top-color: var(--sienna);
+      background: var(--bg-callout);
+    }
+
+    .tile h2 {
+      margin: 0 0 0.08in;
+      color: var(--ink-head);
+      font-size: 22px;
+      line-height: 1.15;
+      font-weight: 650;
+    }
+
+    .tile p,
+    .tile li {
+      color: var(--ink);
+      font-size: 18px;
+      line-height: 1.35;
+    }
+
+    .tile p {
+      margin: 0;
+    }
+
+    ul {
+      margin: 0;
+      padding-left: 0.18in;
+    }
+
+    li + li {
+      margin-top: 0.06in;
+    }
+
+    .kpi {
+      display: block;
+      margin: 0 0 0.06in;
+      color: var(--ink-head);
+      font-size: 72px;
+      line-height: 0.92;
+      font-weight: 680;
+      letter-spacing: -0.02em;
+    }
+
+    .kpi-label {
+      display: block;
+      color: var(--sienna);
+      font-size: 18px;
+      font-weight: 700;
+      line-height: 1.2;
+    }
+
+    .callout {
+      padding: 0.18in 0.22in;
+      background: var(--bg-callout);
+      border-left: 5px solid var(--sienna);
+      color: var(--ink);
+      font-size: 20px;
+      line-height: 1.34;
+    }
+
+    .matrix {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--surface);
+      border: 1px solid var(--rule);
+      font-size: 17px;
+    }
+
+    .matrix th,
+    .matrix td {
+      padding: 10px 9px;
+      border-bottom: 1px solid var(--rule);
+      text-align: center;
+      vertical-align: middle;
+    }
+
+    .matrix th:first-child,
+    .matrix td:first-child {
+      text-align: left;
+      width: 22%;
+      font-weight: 700;
+    }
+
+    .matrix th {
+      color: var(--ink-head);
+      background: #ebe4d6;
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .matrix tr.highlight {
+      background: var(--bg-callout);
+    }
+
+    .check {
+      color: var(--olive);
+      font-size: 22px;
+      font-weight: 800;
+    }
+
+    .dash {
+      color: #9b8e78;
+    }
+
+    .plan-path {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.18in;
+    }
+
+    .phase {
+      padding: 0.2in;
+      min-height: 2.7in;
+      background: var(--surface);
+      border: 1px solid var(--rule);
+      border-top: 6px solid var(--sienna);
+    }
+
+    .phase:nth-child(2) {
+      border-top-color: var(--olive);
+    }
+
+    .phase:nth-child(3) {
+      border-top-color: var(--red);
+    }
+
+    .phase h2 {
+      margin: 0 0 0.06in;
+      color: var(--ink-head);
+      font-size: 24px;
+      line-height: 1.1;
+    }
+
+    .phase .period {
+      display: block;
+      margin-bottom: 0.12in;
+      color: var(--ink-mute);
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    .bar-list {
+      display: grid;
+      gap: 0.16in;
+    }
+
+    .bar-row {
+      display: grid;
+      grid-template-columns: 0.82in 1fr 2.4in;
+      gap: 0.18in;
+      align-items: center;
+    }
+
+    .bar-value {
+      color: var(--ink-head);
+      font-size: 42px;
+      line-height: 1;
+      font-weight: 680;
+    }
+
+    .bar {
+      height: 12px;
+      background: #e0d7c6;
+    }
+
+    .bar span {
+      display: block;
+      height: 100%;
+      background: var(--sienna);
+    }
+
+    .bar-row p {
+      margin: 0;
+      font-size: 17px;
+      line-height: 1.3;
+    }
+
+    .pricing {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.18in;
+    }
+
+    .plan {
+      padding: 0.22in;
+      min-height: 2.95in;
+      background: var(--surface);
+      border: 1px solid var(--rule);
+      border-top: 6px solid var(--rule);
+    }
+
+    .plan.recommended {
+      border-top-color: var(--sienna);
+      background: var(--bg-callout);
+    }
+
+    .plan h2 {
+      margin: 0 0 0.08in;
+      font-size: 25px;
+      line-height: 1.1;
+    }
+
+    .price {
+      display: block;
+      margin-bottom: 0.16in;
+      color: var(--ink-head);
+      font-size: 44px;
+      font-weight: 680;
+      line-height: 1;
+    }
+
+    .brand-row {
+      display: flex;
+      align-items: center;
+      gap: 0.12in;
+      color: var(--red);
+      font-size: 30px;
+      font-weight: 650;
+    }
+
+    .brand-mark {
+      width: 0.42in;
+      height: 0.42in;
+      overflow: visible;
+    }
+
+    .thread-graph {
+      position: absolute;
+      right: 0.82in;
+      bottom: 0.72in;
+      width: 2.5in;
+      height: 2.1in;
+      opacity: 0.94;
+    }
+
+    .footer {
+      display: flex;
+      justify-content: space-between;
+      gap: 24px;
+      color: var(--ink-mute);
+      font-size: 15px;
+      line-height: 1.2;
+    }
+
+    .small {
+      color: var(--ink-mute);
+      font-size: 14px;
+      line-height: 1.3;
+    }
+
+    @page {
+      size: 13.333in 7.5in;
+      margin: 0;
+    }
+
+    @media print {
+      html,
+      body {
+        background: #fff;
+      }
+
+      .slide {
+        width: var(--page-w);
+        height: var(--page-h);
+        margin: 0;
+        box-shadow: none;
+        page-break-after: always;
+        break-after: page;
+        break-inside: avoid;
+        print-color-adjust: exact;
+        -webkit-print-color-adjust: exact;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="presentation">
+    <section class="slide cover">
+      <div class="topline">
+        <div class="brand-row">
+          <svg class="brand-mark" viewBox="0 0 100 100" aria-hidden="true">
+            <path d="M14 82 V18 C14 15 18 13 21 16 L79 76 C82 79 87 77 87 72 V18" fill="none" stroke="var(--red)" stroke-width="9" stroke-linecap="round"/>
+            <circle cx="14" cy="82" r="7" fill="var(--red)"/>
+            <circle cx="87" cy="18" r="7" fill="var(--red)"/>
+          </svg>
+          <span>нити</span>
+        </div>
+        <p class="source">Инвестиционная презентация · июль 2026</p>
+      </div>
+      <div>
+        <p class="eyebrow">AI second brain для осознанного мышления</p>
+        <h1>Нити превращают разрозненные мысли в управляемую личную память</h1>
+      </div>
+      <p class="subtitle">Продукт для заметок, ссылок и медиа, который помогает находить связи между идеями и возвращаться к ним без ручной системы папок.</p>
+      <svg class="thread-graph" viewBox="0 0 300 250" aria-hidden="true">
+        <g stroke="#c6bda9" stroke-width="2">
+          <path d="M52 190 L122 106 L204 150 L264 64"/>
+          <path d="M122 106 L130 38 L220 42"/>
+          <path d="M204 150 L242 214"/>
+          <path d="M52 190 L30 126"/>
+        </g>
+        <circle cx="122" cy="106" r="17" fill="var(--sienna)"/>
+        <circle cx="204" cy="150" r="13" fill="var(--olive)"/>
+        <circle cx="52" cy="190" r="12" fill="#d79a45"/>
+        <circle cx="30" cy="126" r="11" fill="#6a9f79"/>
+        <circle cx="264" cy="64" r="8" fill="var(--ink-head)"/>
+        <circle cx="220" cy="42" r="8" fill="var(--ink-head)"/>
+        <circle cx="242" cy="214" r="10" fill="var(--red)"/>
+      </svg>
+      <div class="footer">
+        <span>Где мысли становятся ясными</span>
+        <span>niti.app · hello@niti.app</span>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div class="slide-number">2 / 13</div>
+      <div class="topline">
+        <p class="eyebrow">Краткое резюме</p>
+        <p class="source">Источник: исходный `niti-pitch.pptx`</p>
+      </div>
+      <h1>Раунд должен купить проверку продукта, спроса и экономики подписки</h1>
+      <div class="body">
+        <div class="grid three">
+          <div class="tile accent">
+            <span class="kpi">₽12M</span>
+            <span class="kpi-label">Запрос на раунд</span>
+            <p>Средства нужны на 12 месяцев до публичного запуска.</p>
+          </div>
+          <div class="tile">
+            <span class="kpi">25K</span>
+            <span class="kpi-label">Целевой ориентир модели</span>
+            <p>Платные пользователи через 12 месяцев после запуска.</p>
+          </div>
+          <div class="tile">
+            <span class="kpi">₽180M+</span>
+            <span class="kpi-label">Целевой ARR</span>
+            <p>Годовая регулярная выручка в целевом сценарии.</p>
+          </div>
+        </div>
+        <div class="callout">Ключевой вопрос для инвестора: можно ли подтвердить спрос и unit-экономику до масштабирования маркетинга и командного тарифа.</div>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div class="slide-number">3 / 13</div>
+      <div class="topline">
+        <p class="eyebrow">Рыночное окно</p>
+        <p class="source">Источники: The Record; App2Top/VK; Sber/Strategy Partners</p>
+      </div>
+      <h1>Локальная альтернатива стала практической потребностью, а не только идеей импортозамещения</h1>
+      <div class="body">
+        <div class="grid three">
+          <div class="tile accent">
+            <span class="kpi">9.09.24</span>
+            <span class="kpi-label">Notion ограничил Россию</span>
+            <p>Российским пользователям дали доступ к рабочим пространствам до 8 сентября 2024 года.</p>
+          </div>
+          <div class="tile">
+            <span class="kpi">65,8M</span>
+            <span class="kpi-label">MAU RuStore в России</span>
+            <p>В начале 2026 года месячная аудитория RuStore достигла 65,8 млн.</p>
+          </div>
+          <div class="tile">
+            <span class="kpi">₽199B</span>
+            <span class="kpi-label">Enterprise software в 2024</span>
+            <p>Российский рынок корпоративного ПО вырос на 34% за год.</p>
+          </div>
+        </div>
+        <p class="small">MAU — monthly active users, месячные активные пользователи. Enterprise software — корпоративное программное обеспечение.</p>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div class="slide-number">4 / 13</div>
+      <div class="topline">
+        <p class="eyebrow">Проблема</p>
+        <p class="source">Источник: исходный `niti-pitch.pptx`; без неподтверждённых процентов</p>
+      </div>
+      <h1>Пользователи сохраняют идеи быстрее, чем способны снова ими воспользоваться</h1>
+      <div class="body">
+        <div class="grid three">
+          <div class="tile">
+            <h2>Заметки становятся складом</h2>
+            <p>Apple Notes легко открываются, но со временем превращаются в список несвязанных фрагментов.</p>
+          </div>
+          <div class="tile">
+            <h2>Закладки теряют смысл</h2>
+            <p>Посты, видео и ссылки хранятся в разных приложениях без причины, по которой их сохранили.</p>
+          </div>
+          <div class="tile">
+            <h2>Сложные базы знаний требуют настройки</h2>
+            <p>Notion и Obsidian полезны дисциплинированным пользователям, но заставляют строить систему до работы.</p>
+          </div>
+        </div>
+        <div class="callout">Нити должны закрыть не «ещё одно место для записи», а возврат к смыслу: где была мысль, с чем она связана и что из неё следует.</div>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div class="slide-number">5 / 13</div>
+      <div class="topline">
+        <p class="eyebrow">Продукт</p>
+        <p class="source">Источник: исходный `niti-pitch.pptx`</p>
+      </div>
+      <h1>Пять продуктовых зон ведут пользователя от записи к карте смыслов</h1>
+      <div class="body">
+        <div class="grid five" style="grid-template-columns: repeat(5, 1fr);">
+          <div class="tile accent">
+            <h2>Главная</h2>
+            <p>Поле ввода и первый ИИ-вывод.</p>
+          </div>
+          <div class="tile">
+            <h2>Заметка</h2>
+            <p>Редактор и связанные мысли рядом.</p>
+          </div>
+          <div class="tile">
+            <h2>Граф</h2>
+            <p>Визуальная карта мышления.</p>
+          </div>
+          <div class="tile">
+            <h2>Темы</h2>
+            <p>Кластеры по смыслу, собранные ИИ.</p>
+          </div>
+          <div class="tile">
+            <h2>Мобайл</h2>
+            <p>Нативные приложения iOS и Android.</p>
+          </div>
+        </div>
+        <p class="small">ИИ — искусственный интеллект. Продуктовая гипотеза: меньше ручной структуры, больше автоматического связывания контента.</p>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div class="slide-number">6 / 13</div>
+      <div class="topline">
+        <p class="eyebrow">Позиционирование</p>
+        <p class="source">Источник: конкурентная оценка из `niti-pitch.pptx`</p>
+      </div>
+      <h1>Нити занимают нишу между простыми заметками и сложными базами знаний</h1>
+      <div class="body">
+        <table class="matrix" aria-label="Матрица позиционирования">
+          <thead>
+            <tr>
+              <th>Продукт</th>
+              <th>Простота</th>
+              <th>ИИ-связи</th>
+              <th>Красота</th>
+              <th>Рубли/RU</th>
+              <th>Личное + работа</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="highlight">
+              <td>Нити</td>
+              <td class="check">✓</td>
+              <td class="check">✓</td>
+              <td class="check">✓</td>
+              <td class="check">✓</td>
+              <td class="check">✓</td>
+            </tr>
+            <tr>
+              <td>Apple Notes</td>
+              <td class="check">✓</td>
+              <td class="dash">–</td>
+              <td class="check">✓</td>
+              <td class="check">✓</td>
+              <td class="dash">–</td>
+            </tr>
+            <tr>
+              <td>Notion</td>
+              <td class="dash">–</td>
+              <td class="dash">–</td>
+              <td class="dash">–</td>
+              <td class="dash">–</td>
+              <td class="check">✓</td>
+            </tr>
+            <tr>
+              <td>Obsidian</td>
+              <td class="dash">–</td>
+              <td class="dash">–</td>
+              <td class="dash">–</td>
+              <td class="dash">–</td>
+              <td class="check">✓</td>
+            </tr>
+            <tr>
+              <td>mymind / Mem.ai</td>
+              <td class="check">✓</td>
+              <td class="check">✓</td>
+              <td class="check">✓</td>
+              <td class="dash">–</td>
+              <td class="dash">–</td>
+            </tr>
+          </tbody>
+        </table>
+        <p class="small">Матрица — гипотеза позиционирования. Перед раундом её нужно подтвердить пользовательскими интервью и тестами конверсии.</p>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div class="slide-number">7 / 13</div>
+      <div class="topline">
+        <p class="eyebrow">Аудитория</p>
+        <p class="source">Источник: целевые сегменты из `niti-pitch.pptx`</p>
+      </div>
+      <h1>Первый рост дают люди, для которых мысль сразу становится рабочим активом</h1>
+      <div class="body">
+        <div class="grid two">
+          <div class="tile accent">
+            <h2>Продакты и аналитики · ~1,8M</h2>
+            <p>Ведут исследования, строят гипотезы и связывают данные с решениями.</p>
+          </div>
+          <div class="tile">
+            <h2>Авторы и креаторы · ~2,4M</h2>
+            <p>Собирают идеи из текстов, видео и соцсетей, но теряют контекст сохранения.</p>
+          </div>
+          <div class="tile">
+            <h2>Саморазвитие · ~3,2M</h2>
+            <p>Читают, рефлексируют и ведут дневники, где быстро копятся несвязанные записи.</p>
+          </div>
+          <div class="tile">
+            <h2>Студенты и учёные · ~1,1M</h2>
+            <p>Работают с источниками, курсовыми и исследованиями, где важны связи между материалами.</p>
+          </div>
+        </div>
+        <p class="small">Сегменты и объёмы — внутренняя оценка исходной модели; методику TAM нужно подтвердить отдельно.</p>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div class="slide-number">8 / 13</div>
+      <div class="topline">
+        <p class="eyebrow">Монетизация</p>
+        <p class="source">Источник: тарифная модель из `niti-pitch.pptx`</p>
+      </div>
+      <h1>Подписка строит путь от бесплатной привычки к платному ИИ-слою</h1>
+      <div class="body">
+        <div class="pricing">
+          <div class="plan">
+            <h2>Free</h2>
+            <span class="price">₽0 / мес</span>
+            <ul>
+              <li>50 заметок</li>
+              <li>базовые связи</li>
+              <li>3 темы</li>
+              <li>мобайл + веб</li>
+            </ul>
+          </div>
+          <div class="plan recommended">
+            <h2>Pro</h2>
+            <span class="price">₽490 / мес</span>
+            <ul>
+              <li>без лимитов</li>
+              <li>полный ИИ</li>
+              <li>голос + медиа</li>
+              <li>граф + темы</li>
+            </ul>
+          </div>
+          <div class="plan">
+            <h2>Team</h2>
+            <span class="price">₽890 / мес</span>
+            <ul>
+              <li>всё из Pro</li>
+              <li>до 10 человек</li>
+              <li>общие темы</li>
+              <li>API-доступ</li>
+            </ul>
+          </div>
+        </div>
+        <p class="small">API — программный интерфейс приложения. Ключевая проверка — конверсия Free → Pro и стоимость ИИ-запросов на одного активного пользователя.</p>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div class="slide-number">9 / 13</div>
+      <div class="topline">
+        <p class="eyebrow">План запуска</p>
+        <p class="source">Источник: дорожная карта из `niti-pitch.pptx`</p>
+      </div>
+      <h1>Дорожная карта ведёт от личного продукта к публичному сервису и командам</h1>
+      <div class="body">
+        <div class="plan-path">
+          <div class="phase">
+            <h2>Фаза 1</h2>
+            <span class="period">0–3 месяца</span>
+            <ul>
+              <li>MVP веб + iOS</li>
+              <li>первые 100 пользователей</li>
+              <li>личный продукт → публичный</li>
+              <li>ранний доступ ₽290/мес</li>
+            </ul>
+          </div>
+          <div class="phase">
+            <h2>Фаза 2</h2>
+            <span class="period">3–6 месяцев</span>
+            <ul>
+              <li>публичный запуск + RuStore</li>
+              <li>оплата рублями</li>
+              <li>PR как первый российский AI brain</li>
+              <li>цель: 5 000 платных</li>
+            </ul>
+          </div>
+          <div class="phase">
+            <h2>Фаза 3</h2>
+            <span class="period">6–12 месяцев</span>
+            <ul>
+              <li>Team-тариф</li>
+              <li>API для интеграций</li>
+              <li>партнёрства с экосистемами</li>
+              <li>цель: 25 000 платных</li>
+            </ul>
+          </div>
+        </div>
+        <p class="small">MVP — минимально жизнеспособный продукт. PR — публичные коммуникации и работа с медиа.</p>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div class="slide-number">10 / 13</div>
+      <div class="topline">
+        <p class="eyebrow">Команда</p>
+        <p class="source">Источник: командный слайд из `niti-pitch.pptx`</p>
+      </div>
+      <h1>Опыт основателя снижает продуктовый риск ранней стадии</h1>
+      <div class="body">
+        <div class="grid two">
+          <div class="tile accent">
+            <h2>Саша Довгополова · CEO & Founder</h2>
+            <ul>
+              <li>Senior PM в ПСБ, корпоративный портал Ньютон для 24K+ сотрудников.</li>
+              <li>5+ лет опыта в Digital Workplace и DEX.</li>
+              <li>Опыт Координационного центра при Правительстве РФ, Диалога и Сбера.</li>
+            </ul>
+          </div>
+          <div class="tile">
+            <h2>ИИ-команда как операционный рычаг</h2>
+            <p>Разработка, продукт, дизайн, маркетинг и ИИ-слой собираются через связку Claude Code, Claude API, embeddings и управленческий контроль основателя.</p>
+          </div>
+        </div>
+        <p class="small">DEX — digital employee experience, цифровой опыт сотрудника. CEO — генеральный директор. PM — product manager, продуктовый менеджер.</p>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div class="slide-number">11 / 13</div>
+      <div class="topline">
+        <p class="eyebrow">Использование средств</p>
+        <p class="source">Источник: структура раунда из `niti-pitch.pptx`</p>
+      </div>
+      <h1>Бюджет распределён между продуктом, спросом и ИИ-инфраструктурой</h1>
+      <div class="body">
+        <div class="bar-list">
+          <div class="bar-row">
+            <span class="bar-value">45%</span>
+            <div class="bar"><span style="width: 45%;"></span></div>
+            <p><strong>Разработка:</strong> команда и инфраструктура.</p>
+          </div>
+          <div class="bar-row">
+            <span class="bar-value">30%</span>
+            <div class="bar"><span style="width: 30%;"></span></div>
+            <p><strong>Маркетинг:</strong> привлечение пользователей и PR.</p>
+          </div>
+          <div class="bar-row">
+            <span class="bar-value">15%</span>
+            <div class="bar"><span style="width: 15%;"></span></div>
+            <p><strong>ИИ-слой:</strong> Claude API и embeddings.</p>
+          </div>
+          <div class="bar-row">
+            <span class="bar-value">10%</span>
+            <div class="bar"><span style="width: 10%;"></span></div>
+            <p><strong>Операции:</strong> юридические, офисные и прочие расходы.</p>
+          </div>
+        </div>
+        <p class="small">Большие числа оставлены нейтральными по правилам skill; акцент используется только в баре и верхней рамке.</p>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div class="slide-number">12 / 13</div>
+      <div class="topline">
+        <p class="eyebrow">Проверка предпосылок</p>
+        <p class="source">Источники: исходный файл + внешние публикации</p>
+      </div>
+      <h1>Перед раундом нужно подтвердить не идею продукта, а три измеримых предпосылки</h1>
+      <div class="body">
+        <div class="grid three">
+          <div class="tile accent">
+            <h2>Спрос</h2>
+            <p>Подтвердить, что аудитория возвращается к сохранённым идеям и готова платить за ИИ-связи.</p>
+          </div>
+          <div class="tile">
+            <h2>Экономика</h2>
+            <p>Проверить конверсию Free → Pro, стоимость ИИ-запросов и маржинальность тарифов.</p>
+          </div>
+          <div class="tile">
+            <h2>Канал</h2>
+            <p>Проверить RuStore, рублёвую оплату, founder-led контент и сообщества практиков.</p>
+          </div>
+        </div>
+        <div class="callout">Если эти предпосылки подтверждаются, следующий раунд финансирует масштабирование, а не поиск базовой продуктовой ценности.</div>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div class="slide-number">13 / 13</div>
+      <div class="topline">
+        <p class="eyebrow">Решение</p>
+        <p class="source">niti.app · hello@niti.app</p>
+      </div>
+      <h1>Следующий шаг — согласовать условия инвестиций и план проверки модели</h1>
+      <div class="body">
+        <div class="grid two">
+          <div class="tile accent">
+            <h2>Запрос к инвестору</h2>
+            <p>Обсудить инвестиции ₽12M на 12 месяцев и зафиксировать контрольные точки по продукту, спросу и экономике.</p>
+          </div>
+          <div class="tile">
+            <h2>Что будет результатом</h2>
+            <p>Публичный запуск, проверенная платная конверсия, первые когорты и решение о масштабировании Team-тарифа.</p>
+          </div>
+        </div>
+        <p class="small">Внешние источники: The Record о Notion; App2Top со ссылкой на VK о RuStore; Sber/Strategy Partners о рынке корпоративного ПО. Внутренние источники: `niti-pitch.pptx`.</p>
+      </div>
+    </section>
+  </main>
+</body>
+</html>
