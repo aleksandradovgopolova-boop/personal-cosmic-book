@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Твоя книга — Personal Cosmic Book</title>
+  <meta name="robots" content="noindex" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    :root {
+      --bg0: #050A14; --bg2: #0C1528;
+      --blue: #7EB5E8; --cream: #E8F0F8; --text: #C3D2E2; --muted: #6A809E;
+      --border: rgba(126, 181, 232, 0.14);
+    }
+    html, body { margin: 0; }
+    body {
+      min-height: 100vh;
+      font-family: Jost, system-ui, sans-serif; font-weight: 300; line-height: 1.75;
+      color: var(--text);
+      background:
+        radial-gradient(ellipse 90% 55% at 50% -10%, rgba(30,80,160,0.32), transparent 65%),
+        radial-gradient(ellipse 50% 45% at 85% 70%, rgba(15,50,110,0.22), transparent 65%),
+        linear-gradient(180deg, #050A14 0%, #070E1C 40%, #060A16 100%);
+      background-attachment: fixed;
+    }
+    .wrap { max-width: 720px; margin: 0 auto; padding: clamp(2rem, 6vw, 5rem) 1.4rem 6rem; }
+
+    .cover { text-align: center; padding: 3rem 0 3.5rem; border-bottom: 1px solid var(--border); }
+    .cover .brand {
+      letter-spacing: 0.32em; text-transform: uppercase; font-size: 0.72rem;
+      color: var(--blue); margin-bottom: 1.6rem;
+    }
+    .cover h1 {
+      font-family: "Cormorant Garamond", serif; font-weight: 500;
+      font-size: clamp(2.6rem, 8vw, 4.2rem); line-height: 1.05; margin: 0 0 1rem; color: var(--cream);
+    }
+    .cover .meta { color: var(--muted); font-size: 0.95rem; margin-bottom: 1.4rem; }
+    .cover .tags { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+    .cover .tags span {
+      font-size: 0.8rem; padding: 5px 12px; border: 1px solid var(--border);
+      border-radius: 999px; color: var(--blue); background: rgba(126,181,232,0.05);
+    }
+
+    .chapter { padding: 2.6rem 0; border-bottom: 1px solid var(--border); }
+    .chapter:last-child { border-bottom: none; }
+    .chapter .num {
+      font-size: 0.72rem; letter-spacing: 0.24em; text-transform: uppercase; color: var(--blue);
+      margin-bottom: 0.6rem;
+    }
+    .chapter h2 {
+      font-family: "Cormorant Garamond", serif; font-weight: 500;
+      font-size: clamp(1.8rem, 5vw, 2.4rem); line-height: 1.12; margin: 0 0 1.2rem; color: var(--cream);
+    }
+    .chapter p { margin: 0 0 1.1rem; font-size: 1.06rem; }
+    .chapter p:last-child { margin-bottom: 0; }
+
+    .state { text-align: center; padding: 5rem 1rem; color: var(--muted); }
+    .state h1 { font-family: "Cormorant Garamond", serif; color: var(--cream); font-weight: 500; }
+    .spinner {
+      width: 26px; height: 26px; margin: 0 auto 18px; border: 2px solid rgba(126,181,232,0.25);
+      border-top-color: var(--blue); border-radius: 50%; animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    a.home { color: var(--blue); text-decoration: none; }
+
+    .foot { text-align: center; color: var(--muted); font-size: 0.85rem; margin-top: 3rem; }
+    .note { color: var(--muted); font-size: 0.9rem; text-align: center; padding: 1.4rem; border: 1px solid var(--border); border-radius: 14px; background: rgba(126,181,232,0.05); margin-top: 2rem; }
+  </style>
+</head>
+<body>
+  <div class="wrap" id="root">
+    <div class="state">
+      <div class="spinner"></div>
+      <p>Готовим твою книгу…</p>
+    </div>
+  </div>
+
+  <script>
+    function escapeHtml(text) {
+      const div = document.createElement("div");
+      div.textContent = text == null ? "" : String(text);
+      return div.innerHTML;
+    }
+
+    function formatDateRu(iso) {
+      const parts = (iso || "").split("-");
+      return parts.length === 3 ? `${parts[2]}.${parts[1]}.${parts[0]}` : (iso || "");
+    }
+
+    function param(name) {
+      return new URLSearchParams(window.location.search).get(name) || "";
+    }
+
+    function renderBook(book) {
+      const c = book.cover || {};
+      const tags = (c.tags || []).map((t) => `<span>${escapeHtml(t)}</span>`).join("");
+      const chapters = (book.chapters || [])
+        .map((ch, i) => {
+          const paras = (ch.paragraphs || []).map((p) => `<p>${escapeHtml(p)}</p>`).join("");
+          return `<section class="chapter"><p class="num">Глава ${String(i + 1).padStart(2, "0")}</p><h2>${escapeHtml(ch.title)}</h2>${paras}</section>`;
+        })
+        .join("");
+      const note = book.astrology_available
+        ? ""
+        : '<div class="note">Это бережная версия по дате рождения. Для полной астрологической карты (планеты и дома) нужны точные время и место рождения.</div>';
+
+      document.getElementById("root").innerHTML =
+        '<header class="cover">' +
+          '<p class="brand">Personal Cosmic Book</p>' +
+          `<h1>${escapeHtml(c.name || "Твоя книга")}</h1>` +
+          `<p class="meta">${escapeHtml(formatDateRu(c.date))}${c.city ? " · " + escapeHtml(c.city) : ""}</p>` +
+          `<div class="tags">${tags}</div>` +
+        "</header>" +
+        note +
+        chapters +
+        '<p class="foot">Personal Cosmic Book · книга о тебе, написанная звёздами</p>';
+      document.title = `${c.name ? c.name + " — " : ""}Твоя книга`;
+    }
+
+    function renderState(html) {
+      document.getElementById("root").innerHTML = `<div class="state">${html}</div>`;
+    }
+
+    async function load() {
+      const payload = {
+        name: param("name") || "Твоя книга",
+        date: param("date"),
+        time: param("time"),
+        city: param("city")
+      };
+      if (!payload.date) {
+        renderState('<h1>Нет данных для книги</h1><p>Открой книгу со страницы заказа. <a class="home" href="/">На главную</a></p>');
+        return;
+      }
+      try {
+        const response = await fetch("/api/book", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(data.error || `Ошибка ${response.status}`);
+        renderBook(data);
+        window.scrollTo(0, 0);
+      } catch (error) {
+        renderState(`<h1>Не получилось открыть книгу</h1><p>${escapeHtml(error.message || "Попробуй ещё раз позже.")}</p><p><a class="home" href="/">На главную</a></p>`);
+      }
+    }
+
+    load();
+  </script>
+</body>
+</html>

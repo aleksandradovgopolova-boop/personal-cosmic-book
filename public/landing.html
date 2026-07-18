@@ -2640,6 +2640,20 @@
         '<button type="button" class="chart-back" onclick="backToForm(this)">← Закрыть</button>';
     }
 
+    function bookLinkHtml(panel) {
+      const raw = panel.dataset.person;
+      if (!raw) return "";
+      let person;
+      try { person = JSON.parse(raw); } catch (error) { return ""; }
+      const params = new URLSearchParams({
+        name: person.name || "",
+        date: person.date || "",
+        time: person.time || "",
+        city: person.city || ""
+      });
+      return `<a class="submit-button" style="display:block;text-align:center;text-decoration:none;margin-top:22px" href="/book.html?${params.toString()}">Открыть свою книгу →</a>`;
+    }
+
     async function payNow(button) {
       const form = button.closest(".modal");
       const panel = ensureResultPanel(form);
@@ -2664,6 +2678,7 @@
         panel.innerHTML =
           '<div class="chart-result-head"><h3>Заказ оформлен ✨</h3></div>' +
           `<div class="chart-note">${escapeHtml(data.message || "Мы приступили к созданию книги. Пришлём ссылку на почту в течение 2 часов.")}</div>` +
+          bookLinkHtml(panel) +
           '<button type="button" class="chart-back" onclick="closeModal()">Готово</button>';
       } catch (error) {
         panel.innerHTML =
@@ -2731,7 +2746,9 @@
           ]);
           renderCompat(panel, chartA, chartB, mode);
         } else {
-          const chart = await fetchChart(readPerson(form, ""));
+          const person = readPerson(form, "");
+          const chart = await fetchChart(person);
+          panel.dataset.person = JSON.stringify(person);
           renderChart(panel, chart, mode);
         }
         form.classList.add("showing-result");
