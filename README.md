@@ -18,11 +18,28 @@
 
 Legacy-темы мигрируют: `cosmic_night → water`, `solar_dawn → fire`, `lunar_mist → air`.
 
-## Локальный запуск
+## Запуск
+
+Единый standalone-сервер (отдаёт статику + `/api/*`, без Next — так же крутится в проде):
 
 ```bash
-pnpm install
-pnpm dev            # витрина (лендинг отдаётся на / через rewrite)
+python3 -m pip install -r requirements.txt
+python3 server.py            # http://localhost:8000
+```
+
+Витрину под Next (dev) можно поднять и так:
+
+```bash
+pnpm install && pnpm dev     # лендинг отдаётся на / через rewrite
+```
+
+## Хостинг / деплой
+
+Разворачивается на любом российском VPS / Timeweb Cloud через Docker или
+напрямую (`server.py` + nginx + systemd). Пошагово — в [`DEPLOY.md`](DEPLOY.md):
+
+```bash
+cp .env.example .env && docker compose up -d --build
 ```
 
 Тесты Python:
