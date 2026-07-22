@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Твоя книга — Personal Cosmic Book</title>
+  <meta name="robots" content="noindex" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    :root {
+      --cover-bg: #102A3A; --cover-text: #F2F7F8; --content-bg: #F4F8FA;
+      --primary: #3E748D; --secondary: #7B9FAE; --text: #24313A; --metal: #AABBC4;
+    }
+    html, body { margin: 0; }
+    body {
+      font-family: Jost, system-ui, sans-serif; font-weight: 300; line-height: 1.75;
+      color: var(--text); background: var(--content-bg);
+    }
+    .wrap { max-width: 720px; margin: 0 auto; padding: 0 1.4rem 5rem; }
+
+    /* Cover (dark allowed) */
+    .cover {
+      background: var(--cover-bg); color: var(--cover-text);
+      margin: 0 calc(50% - 50vw); padding: clamp(3.5rem, 9vw, 6rem) 1.4rem;
+      text-align: center;
+    }
+    .cover-inner { max-width: 720px; margin: 0 auto; }
+    .cover .symbol { width: 54px; height: 54px; margin: 0 auto 1.6rem; opacity: .9; }
+    .cover .brand { letter-spacing: .32em; text-transform: uppercase; font-size: .72rem; opacity: .75; margin-bottom: 1.4rem; }
+    .cover h1 { font-family: "Cormorant Garamond", serif; font-weight: 500; font-size: clamp(2.6rem, 8vw, 4.4rem); line-height: 1.04; margin: 0 0 .8rem; }
+    .cover .subtitle { font-family: "Cormorant Garamond", serif; font-style: italic; font-size: 1.3rem; opacity: .85; margin: 0 0 1.4rem; }
+    .cover .meta { font-size: .9rem; opacity: .7; margin-bottom: 1.4rem; }
+    .cover .tags { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+    .cover .tags span { font-size: .8rem; padding: 5px 12px; border: 1px solid rgba(255,255,255,.25); border-radius: 999px; }
+
+    /* Table of contents */
+    .toc { padding: 2.6rem 0 1rem; border-bottom: 1px solid rgba(0,0,0,.08); }
+    .toc p.h { font-size: .72rem; letter-spacing: .22em; text-transform: uppercase; color: var(--primary); margin: 0 0 1rem; }
+    .toc ol { margin: 0; padding: 0; list-style: none; counter-reset: toc; }
+    .toc li { counter-increment: toc; padding: .35rem 0; display: flex; gap: .8rem; }
+    .toc li::before { content: counter(toc, decimal-leading-zero); color: var(--metal); font-variant-numeric: tabular-nums; }
+    .toc a { color: var(--text); text-decoration: none; }
+    .toc a:hover { color: var(--primary); }
+
+    /* Sections */
+    .section { padding: 2.8rem 0; border-bottom: 1px solid rgba(0,0,0,.08); }
+    .section:last-of-type { border-bottom: none; }
+    .section .eyebrow { font-size: .72rem; letter-spacing: .22em; text-transform: uppercase; color: var(--primary); margin: 0 0 .5rem; }
+    .section h2 { font-family: "Cormorant Garamond", serif; font-weight: 500; font-size: clamp(1.9rem, 5vw, 2.6rem); line-height: 1.1; margin: 0 0 1.1rem; color: var(--text); }
+    .section .opening { font-family: "Cormorant Garamond", serif; font-style: italic; font-size: 1.25rem; color: var(--primary); margin: 0 0 1.4rem; }
+    .section .block { margin-bottom: 1.4rem; }
+    .section .block h3 { font-size: 1.02rem; font-weight: 500; color: var(--primary); margin: 0 0 .6rem; }
+    .section p { margin: 0 0 1rem; font-size: 1.06rem; }
+    .section .block p:last-child { margin-bottom: 0; }
+    .reflection { margin-top: 1.6rem; padding: 1.2rem 1.4rem; border-left: 3px solid var(--secondary); background: rgba(0,0,0,.03); border-radius: 0 10px 10px 0; }
+    .reflection .t { font-size: .8rem; letter-spacing: .12em; text-transform: uppercase; color: var(--primary); margin: 0 0 .4rem; }
+    .reflection .x { margin: 0; font-style: italic; }
+
+    .foot { text-align: center; color: var(--secondary); font-size: .82rem; margin-top: 3rem; line-height: 1.6; }
+
+    .state { text-align: center; padding: 5rem 1rem; color: var(--secondary); }
+    .state h1 { font-family: "Cormorant Garamond", serif; color: var(--text); font-weight: 500; }
+    .spinner { width: 26px; height: 26px; margin: 0 auto 18px; border: 2px solid rgba(0,0,0,.12); border-top-color: var(--primary); border-radius: 50%; animation: spin .8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    a.home { color: var(--primary); }
+
+    @media print { .cover { margin: 0; } a { text-decoration: none; } }
+  </style>
+</head>
+<body>
+  <div id="root">
+    <div class="wrap"><div class="state"><div class="spinner"></div><p>Готовим твою книгу…</p></div></div>
+  </div>
+
+  <script>
+    var SYMBOLS = {
+      earth: '<svg class="symbol" viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M6 26c4-3 10-3 14 0s10 3 14 0"/><path d="M6 20c4-3 10-3 14 0s10 3 14 0"/><path d="M6 14c4-3 10-3 14 0s10 3 14 0"/></svg>',
+      water: '<svg class="symbol" viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="20" cy="20" r="4"/><circle cx="20" cy="20" r="10"/><circle cx="20" cy="20" r="16"/></svg>',
+      air: '<svg class="symbol" viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M6 15h20a4 4 0 1 0-4-4"/><path d="M6 22h24a4 4 0 1 1-4 4"/><path d="M6 29h14"/></svg>',
+      fire: '<svg class="symbol" viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M20 4v8M20 28v8M4 20h8M28 20h8M9 9l5 5M26 26l5 5M31 9l-5 5M14 26l-5 5"/><circle cx="20" cy="20" r="4"/></svg>'
+    };
+
+    function esc(t){ var d=document.createElement("div"); d.textContent=t==null?"":String(t); return d.innerHTML; }
+    function fmt(iso){ var p=(iso||"").split("-"); return p.length===3?(p[2]+"."+p[1]+"."+p[0]):(iso||""); }
+    function slug(id){ return "s-"+String(id).replace(/[^a-z0-9]/gi,"-"); }
+    function param(n){ return new URLSearchParams(window.location.search).get(n) || ""; }
+
+    function applyTheme(tokens){
+      if(!tokens) return;
+      var r=document.documentElement.style, map={cover_background:"--cover-bg",cover_text:"--cover-text",content_background:"--content-bg",primary:"--primary",secondary:"--secondary",text:"--text",metal:"--metal"};
+      Object.keys(map).forEach(function(k){ if(tokens[k]) r.setProperty(map[k], tokens[k]); });
+    }
+
+    function renderBook(book){
+      applyTheme(book.theme_tokens);
+      var c = book.cover || {};
+      var symbol = SYMBOLS[book.element_symbol] || SYMBOLS.water;
+      var tags = (c.tags||[]).map(function(t){ return "<span>"+esc(t)+"</span>"; }).join("");
+
+      var toc = (book.sections||[]).map(function(s){
+        return '<li><a href="#'+slug(s.id)+'">'+esc(s.title)+'</a></li>';
+      }).join("");
+
+      var sections = (book.sections||[]).map(function(s){
+        var parts = [];
+        if(s.eyebrow) parts.push('<p class="eyebrow">'+esc(s.eyebrow)+'</p>');
+        parts.push('<h2>'+esc(s.title)+'</h2>');
+        if(s.opening) parts.push('<p class="opening">'+esc(s.opening)+'</p>');
+        (s.blocks||[]).forEach(function(b){
+          var bp = '<div class="block">';
+          if(b.heading) bp += '<h3>'+esc(b.heading)+'</h3>';
+          bp += (b.paragraphs||[]).map(function(p){ return "<p>"+esc(p)+"</p>"; }).join("");
+          bp += '</div>';
+          parts.push(bp);
+        });
+        if(s.reflection && s.reflection.text){
+          parts.push('<div class="reflection"><p class="t">'+esc(s.reflection.title||"Вопрос к себе")+'</p><p class="x">'+esc(s.reflection.text)+'</p></div>');
+        }
+        return '<section class="section" id="'+slug(s.id)+'">'+parts.join("")+'</section>';
+      }).join("");
+
+      document.getElementById("root").innerHTML =
+        '<header class="cover"><div class="cover-inner">'+symbol+
+          '<p class="brand">Personal Cosmic Book</p>'+
+          '<h1>'+esc(c.name||"Твоя книга")+'</h1>'+
+          (c.subtitle?'<p class="subtitle">'+esc(c.subtitle)+'</p>':'')+
+          '<p class="meta">'+esc(fmt(c.date))+(c.city?" · "+esc(c.city):"")+'</p>'+
+          '<div class="tags">'+tags+'</div>'+
+        '</div></header>'+
+        '<div class="wrap">'+
+          '<nav class="toc"><p class="h">Оглавление</p><ol>'+toc+'</ol></nav>'+
+          sections+
+          '<p class="foot">'+esc(book.disclaimer||"")+'</p>'+
+        '</div>';
+      document.title = (c.name?c.name+" — ":"")+"Твоя книга";
+    }
+
+    function renderState(html){ document.getElementById("root").innerHTML = '<div class="wrap"><div class="state">'+html+'</div></div>'; }
+
+    async function load(){
+      var payload = { name: param("name")||"Твоя книга", date: param("date"), time: param("time"), city: param("city"), requested_theme: param("theme")||"auto" };
+      if(!payload.date){ renderState('<h1>Нет данных для книги</h1><p>Открой книгу со страницы заказа. <a class="home" href="/">На главную</a></p>'); return; }
+      try {
+        var res = await fetch("/api/book", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify(payload) });
+        var data = await res.json().catch(function(){ return {}; });
+        if(!res.ok) throw new Error(data.error || ("Ошибка "+res.status));
+        renderBook(data);
+        window.scrollTo(0,0);
+      } catch(e){
+        renderState('<h1>Не получилось открыть книгу</h1><p>'+esc(e.message||"Попробуй позже.")+'</p><p><a class="home" href="/">На главную</a></p>');
+      }
+    }
+    load();
+  </script>
+</body>
+</html>

@@ -4,6 +4,29 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Personal Cosmic Book — книга о тебе, написанная звёздами</title>
+  <meta name="description" content="Персональная книга на основе твоей натальной карты: астрология, нумерология и матрица судьбы в одном бережном тексте о тебе. Первая глава — бесплатно." />
+  <meta name="theme-color" content="#050A14" />
+  <meta name="robots" content="index, follow" />
+  <link rel="canonical" href="https://personal-cosmic-book.ru/" />
+
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Personal Cosmic Book" />
+  <meta property="og:title" content="Personal Cosmic Book — книга о тебе, написанная звёздами" />
+  <meta property="og:description" content="Персональная книга на основе твоей натальной карты: астрология, нумерология и матрица судьбы. Первая глава — бесплатно." />
+  <meta property="og:url" content="https://personal-cosmic-book.ru/" />
+  <meta property="og:image" content="https://personal-cosmic-book.ru/og-image.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:locale" content="ru_RU" />
+
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Personal Cosmic Book — книга о тебе, написанная звёздами" />
+  <meta name="twitter:description" content="Персональная книга на основе твоей натальной карты. Первая глава — бесплатно." />
+  <meta name="twitter:image" content="https://personal-cosmic-book.ru/og-image.png" />
+
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="apple-touch-icon" href="/favicon.svg" />
+
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,400&family=Jost:wght@300;400;500&family=Unbounded:wght@300;400&display=swap" rel="stylesheet" />
@@ -1713,6 +1736,23 @@
       font-size: 0.9rem;
     }
     .chart-back:hover { background: rgba(126, 181, 232, 0.1); }
+
+    /* Theme (element) selector */
+    .theme-select { margin: 18px 0 4px; }
+    .theme-select > .theme-label { font-size: 0.82rem; color: var(--muted); margin: 0 0 10px; }
+    .theme-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 8px; }
+    .theme-card { position: relative; display: block; cursor: pointer; }
+    .theme-card input { position: absolute; opacity: 0; pointer-events: none; }
+    .theme-card > span {
+      display: block; padding: 10px 12px; border: 1px solid var(--border);
+      border-radius: 12px; background: rgba(126, 181, 232, 0.04);
+      transition: border-color 0.2s ease, background 0.2s ease;
+    }
+    .theme-card .tc-name { display: block; font-size: 0.92rem; color: var(--cream); }
+    .theme-card .tc-hint { display: block; font-size: 0.74rem; color: var(--muted); margin-top: 2px; }
+    .theme-card .tc-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 6px; vertical-align: middle; }
+    .theme-card input:checked + span { border-color: var(--border-strong); background: rgba(126, 181, 232, 0.12); }
+    .theme-note { font-size: 0.76rem; color: var(--muted); margin: 10px 0 0; }
   </style>
 </head>
 <body>
@@ -1940,32 +1980,23 @@
         </div>
         <div class="contents-inline" id="contents">
           <p class="section-eyebrow">Что внутри</p>
-          <h2>Девятнадцать глав о тебе</h2>
-          <p class="section-subtitle">Каждая глава — новый угол. Новый способ увидеть себя.</p>
+          <h2>Десять глав о тебе</h2>
+          <p class="section-subtitle">Единый путь, а не каталог систем. От главной темы — к бережному первому шагу.</p>
           <div class="chapters-wrap">
             <div class="chapters">
-              <article class="chapter"><span>01</span><p>Кто ты на самом деле</p></article>
-              <article class="chapter"><span>02</span><p>Твоя внутренняя природа</p></article>
-              <article class="chapter"><span>03</span><p>Эмоции и реакции</p></article>
-              <article class="chapter"><span>04</span><p>Архетип личности</p></article>
-              <article class="chapter"><span>05</span><p>Любовь и отношения</p></article>
-              <article class="chapter locked"><span>06</span><p>Деньги и самореализация</p></article>
-              <article class="chapter locked"><span>07</span><p>Предназначение</p></article>
-              <article class="chapter locked"><span>08</span><p>Жизненные уроки</p></article>
-              <article class="chapter locked"><span>09</span><p>Сильные стороны</p></article>
-              <article class="chapter locked"><span>10</span><p>Внутренние противоречия</p></article>
-              <article class="chapter locked"><span>11</span><p>Родовые темы</p></article>
-              <article class="chapter locked"><span>12</span><p>Тень и защитные сценарии</p></article>
-              <article class="chapter locked"><span>13</span><p>Таланты и ресурсы</p></article>
-              <article class="chapter locked"><span>14</span><p>Как тебя видят другие</p></article>
-              <article class="chapter locked"><span>15</span><p>Рекомендации для текущего периода</p></article>
-              <article class="chapter locked"><span>16</span><p>Личная формула</p></article>
-              <article class="chapter locked"><span>17</span><p>Письмо себе</p></article>
-              <article class="chapter locked"><span>18</span><p>Бережные шаги</p></article>
-              <article class="chapter locked"><span>19</span><p>Главные инсайты</p></article>
+              <article class="chapter"><span>01</span><p>Главная тема твоей книги</p></article>
+              <article class="chapter locked"><span>02</span><p>Твой внутренний мир</p></article>
+              <article class="chapter locked"><span>03</span><p>Твои сильные стороны</p></article>
+              <article class="chapter locked"><span>04</span><p>Внутренние противоречия</p></article>
+              <article class="chapter locked"><span>05</span><p>Любовь и близость</p></article>
+              <article class="chapter locked"><span>06</span><p>Реализация, дело и деньги</p></article>
+              <article class="chapter locked"><span>07</span><p>Как ты проявляешься в мире</p></article>
+              <article class="chapter locked"><span>08</span><p>Повторяющиеся сценарии и точки роста</p></article>
+              <article class="chapter locked"><span>09</span><p>Твоя персональная формула</p></article>
+              <article class="chapter locked"><span>10</span><p>Твой следующий шаг</p></article>
             </div>
             <div class="locked-overlay">
-              <p class="locked-note">Все 19 глав открываются в полной книге за 990 ₽</p>
+              <p class="locked-note">Все 10 глав открываются в полной книге за 990 ₽</p>
             </div>
           </div>
         </div>
@@ -2120,6 +2151,18 @@
         <p class="field-error-message">Это поле обязательно</p>
       </div>
 
+      <div class="theme-select">
+        <p class="theme-label">Оформление книги</p>
+        <div class="theme-cards">
+          <label class="theme-card"><input type="radio" name="requested-theme" value="auto" checked /><span><span class="tc-name">Подобрать по карте</span><span class="tc-hint">по стихии твоих знаков</span></span></label>
+          <label class="theme-card"><input type="radio" name="requested-theme" value="earth" /><span><span class="tc-name"><span class="tc-dot" style="background:#293029"></span>Земля · Корни</span><span class="tc-hint">спокойное, собранное</span></span></label>
+          <label class="theme-card"><input type="radio" name="requested-theme" value="water" /><span><span class="tc-name"><span class="tc-dot" style="background:#102A3A"></span>Вода · Глубина</span><span class="tc-hint">мягкое, глубокое</span></span></label>
+          <label class="theme-card"><input type="radio" name="requested-theme" value="air" /><span><span class="tc-name"><span class="tc-dot" style="background:#8AA7B3"></span>Воздух · Дыхание</span><span class="tc-hint">светлое, просторное</span></span></label>
+          <label class="theme-card"><input type="radio" name="requested-theme" value="fire" /><span><span class="tc-name"><span class="tc-dot" style="background:#3A201D"></span>Огонь · Искра</span><span class="tc-hint">тёплое, выразительное</span></span></label>
+        </div>
+        <p class="theme-note">Стихия влияет только на оформление книги. Она не меняет расчёты и содержание.</p>
+      </div>
+
       <button class="submit-button" type="submit">Получить книгу — 990 ₽</button>
       <p class="submit-note">Полная книга в течение 2 часов на почту</p>
     </form>
@@ -2179,6 +2222,18 @@
           <span>Я согласен(на) на сбор и обработку персональных данных</span>
         </label>
         <p class="field-error-message">Это поле обязательно</p>
+      </div>
+
+      <div class="theme-select">
+        <p class="theme-label">Оформление книги</p>
+        <div class="theme-cards">
+          <label class="theme-card"><input type="radio" name="requested-theme" value="auto" checked /><span><span class="tc-name">Подобрать по карте</span><span class="tc-hint">по стихии знаков</span></span></label>
+          <label class="theme-card"><input type="radio" name="requested-theme" value="earth" /><span><span class="tc-name"><span class="tc-dot" style="background:#293029"></span>Земля · Корни</span><span class="tc-hint">спокойное, собранное</span></span></label>
+          <label class="theme-card"><input type="radio" name="requested-theme" value="water" /><span><span class="tc-name"><span class="tc-dot" style="background:#102A3A"></span>Вода · Глубина</span><span class="tc-hint">мягкое, глубокое</span></span></label>
+          <label class="theme-card"><input type="radio" name="requested-theme" value="air" /><span><span class="tc-name"><span class="tc-dot" style="background:#8AA7B3"></span>Воздух · Дыхание</span><span class="tc-hint">светлое, просторное</span></span></label>
+          <label class="theme-card"><input type="radio" name="requested-theme" value="fire" /><span><span class="tc-name"><span class="tc-dot" style="background:#3A201D"></span>Огонь · Искра</span><span class="tc-hint">тёплое, выразительное</span></span></label>
+        </div>
+        <p class="theme-note">Стихия влияет только на оформление книги. Она не меняет расчёты и содержание.</p>
       </div>
 
       <button class="submit-button" type="submit">Подарить книгу — 990 ₽</button>
@@ -2617,6 +2672,21 @@
         '<button type="button" class="chart-back" onclick="backToForm(this)">← Закрыть</button>';
     }
 
+    function bookLinkHtml(panel) {
+      const raw = panel.dataset.person;
+      if (!raw) return "";
+      let person;
+      try { person = JSON.parse(raw); } catch (error) { return ""; }
+      const params = new URLSearchParams({
+        name: person.name || "",
+        date: person.date || "",
+        time: person.time || "",
+        city: person.city || "",
+        theme: panel.dataset.reqTheme || "auto"
+      });
+      return `<a class="submit-button" style="display:block;text-align:center;text-decoration:none;margin-top:22px" href="/book.html?${params.toString()}">Открыть свою книгу →</a>`;
+    }
+
     async function payNow(button) {
       const form = button.closest(".modal");
       const panel = ensureResultPanel(form);
@@ -2641,6 +2711,7 @@
         panel.innerHTML =
           '<div class="chart-result-head"><h3>Заказ оформлен ✨</h3></div>' +
           `<div class="chart-note">${escapeHtml(data.message || "Мы приступили к созданию книги. Пришлём ссылку на почту в течение 2 часов.")}</div>` +
+          bookLinkHtml(panel) +
           '<button type="button" class="chart-back" onclick="closeModal()">Готово</button>';
       } catch (error) {
         panel.innerHTML =
@@ -2708,7 +2779,11 @@
           ]);
           renderCompat(panel, chartA, chartB, mode);
         } else {
-          const chart = await fetchChart(readPerson(form, ""));
+          const person = readPerson(form, "");
+          const chart = await fetchChart(person);
+          const themeInput = form.querySelector('input[name="requested-theme"]:checked');
+          panel.dataset.reqTheme = themeInput ? themeInput.value : "auto";
+          panel.dataset.person = JSON.stringify(person);
           renderChart(panel, chart, mode);
         }
         form.classList.add("showing-result");
