@@ -9,7 +9,7 @@ from __future__ import annotations
 import hashlib
 from typing import Any, Dict, List, Optional
 
-ALGORITHM_VERSION = "astrology-four-elements-v1"
+ALGORITHM_VERSION = "astrology-sun-sign-v1"
 
 THEMES = ("earth", "water", "air", "fire")
 
@@ -123,7 +123,12 @@ def assign_theme(
     angles_allowed: Optional[bool] = None,
     moon_reliable: bool = True,
 ) -> Dict[str, Any]:
-    """Return a deterministic visual_assignment block (see input-data-contract-v3)."""
+    """Return a deterministic visual_assignment block.
+
+    Auto mode resolves the theme strictly from the Sun-sign element
+    (astrology-sun-sign-v1). ``element_scores`` is still reported as an
+    informative weighted profile but does not drive the auto decision.
+    """
     chart = chart or {}
     warnings: List[str] = []
     requested = str(requested_theme or "auto").strip().lower()
@@ -132,10 +137,12 @@ def assign_theme(
         requested = "auto"
 
     scores = compute_element_scores(chart, angles_allowed=angles_allowed, moon_reliable=moon_reliable)
+    sun_element = _sign_element((chart.get("sun") or {}).get("sign")) if isinstance(chart.get("sun"), dict) else None
 
     result = {
         "algorithm_version": ALGORITHM_VERSION,
         "element_scores": scores,
+        "sun_element": sun_element,
         "dominant_element": None,
         "resolved_theme": None,
         "resolution_reason": None,
@@ -147,55 +154,21 @@ def assign_theme(
     if requested in THEMES:
         result["resolved_theme"] = requested
         result["resolution_reason"] = "user_choice"
-        if any(scores.values()):
-            result["dominant_element"] = _dominant(scores)
+        result["dominant_element"] = sun_element
         return result
 
-    # 2. Auto: not enough astrological data -> stable hash over the four themes.
-    total = sum(scores.values())
-    if total == 0:
-        warnings.append("insufficient_astrology_data")
-        theme = _stable_hash_choice(book_id, list(THEMES))
-        result["resolved_theme"] = theme
-        result["resolution_reason"] = "hash_fallback"
+    # 2. Auto: theme = element of the Sun sign.
+    if sun_element:
+        result["dominant_element"] = sun_element
+        result["resolved_theme"] = sun_element
+        result["resolution_reason"] = "sun_sign"
         return result
 
-    # 3. Auto: dominant element, with deterministic tie-breaking.
-    leaders = _leaders(scores)
-    result["dominant_element"] = leaders[0] if len(leaders) == 1 else None
-    if len(leaders) == 1:
-        result["resolved_theme"] = leaders[0]
-        result["resolution_reason"] = "dominant_element"
-        return result
-
-    # Tie-break: Sun element -> reliable Moon element -> stable hash, among leaders.
-    sun_el = _sign_element((chart.get("sun") or {}).get("sign")) if isinstance(chart.get("sun"), dict) else None
-    moon_el = _sign_element((chart.get("moon") or {}).get("sign")) if (moon_reliable and isinstance(chart.get("moon"), dict)) else None
-
-    if sun_el in leaders:
-        theme, tb = sun_el, "sun"
-    elif moon_el in leaders:
-        theme, tb = moon_el, "moon"
-    else:
-        theme, tb = _stable_hash_choice(book_id, leaders), "hash"
-
-    result["dominant_element"] = theme
-    result["resolved_theme"] = theme
-    result["resolution_reason"] = "dominant_element"
-    result["tie_breaker"] = tb
+    # 3. No Sun sign available -> stable hash over the four themes.
+    warnings.append("no_sun_sign")
+    result["resolved_theme"] = _stable_hash_choice(book_id, list(THEMES))
+    result["resolution_reason"] = "hash_fallback"
     return result
-
-
-def _dominant(scores: Dict[str, int]) -> Optional[str]:
-    leaders = _leaders(scores)
-    return leaders[0] if len(leaders) == 1 else None
-
-
-def _leaders(scores: Dict[str, int]) -> List[str]:
-    top = max(scores.values())
-    if top == 0:
-        return []
-    return [t for t in THEMES if scores[t] == top]
 
 
 # ── Immutable design tokens (design-system-elements-v2.md) ──

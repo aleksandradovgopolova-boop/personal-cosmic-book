@@ -14,7 +14,11 @@ def sign(s):
     return {"sign": s}
 
 
-def test_element_scores_weighted():
+def test_algorithm_version_is_sun_sign():
+    assert ALGORITHM_VERSION == "astrology-sun-sign-v1"
+
+
+def test_element_scores_weighted_is_informative():
     chart = {
         "sun": sign("Libra"),      # air +3
         "moon": sign("Aquarius"),  # air +3
@@ -27,58 +31,53 @@ def test_element_scores_weighted():
     assert scores == {"air": 8, "earth": 2, "fire": 2, "water": 1}
 
 
-def test_dominant_exact_win():
-    chart = {"sun": sign("Libra"), "moon": sign("Gemini"), "venus": sign("Aquarius")}
+def test_auto_uses_sun_sign_element():
+    for sun_sign, expected in [
+        ("Aries", "fire"), ("Leo", "fire"), ("Sagittarius", "fire"),
+        ("Taurus", "earth"), ("Virgo", "earth"), ("Capricorn", "earth"),
+        ("Gemini", "air"), ("Libra", "air"), ("Aquarius", "air"),
+        ("Cancer", "water"), ("Scorpio", "water"), ("Pisces", "water"),
+    ]:
+        r = assign_theme({"sun": sign(sun_sign)}, requested_theme="auto", book_id="b1")
+        assert r["resolved_theme"] == expected
+        assert r["resolution_reason"] == "sun_sign"
+        assert r["dominant_element"] == expected
+
+
+def test_sun_sign_wins_over_other_placements():
+    # Sun in Aries (fire) even though everything else is water.
+    chart = {
+        "sun": sign("Aries"),
+        "moon": sign("Cancer"), "mercury": sign("Scorpio"),
+        "venus": sign("Pisces"), "mars": sign("Cancer"),
+    }
     r = assign_theme(chart, requested_theme="auto", book_id="b1")
-    assert r["resolved_theme"] == "air"
-    assert r["resolution_reason"] == "dominant_element"
-    assert r["dominant_element"] == "air"
-    assert r["algorithm_version"] == ALGORITHM_VERSION
+    assert r["resolved_theme"] == "fire"
+    assert r["resolution_reason"] == "sun_sign"
 
 
-def test_user_choice_overrides_scores():
-    chart = {"sun": sign("Libra"), "moon": sign("Gemini")}  # air-heavy
+def test_user_choice_overrides_sun_sign():
+    chart = {"sun": sign("Libra")}  # air
     r = assign_theme(chart, requested_theme="fire", book_id="b1")
     assert r["resolved_theme"] == "fire"
     assert r["resolution_reason"] == "user_choice"
+    assert r["dominant_element"] == "air"  # reported Sun element, but user wins
 
 
-def test_tie_broken_by_sun():
-    chart = {"sun": sign("Aries"), "moon": sign("Cancer")}  # fire 3 vs water 3
-    r = assign_theme(chart, requested_theme="auto", book_id="b1")
-    assert r["resolved_theme"] == "fire"
-    assert r["tie_breaker"] == "sun"
-    assert r["resolution_reason"] == "dominant_element"
-
-
-def test_tie_broken_by_moon_when_sun_not_leader():
-    chart = {
-        "sun": sign("Aries"),    # fire +3 (not a leader)
-        "moon": sign("Cancer"),  # water +3
-        "venus": sign("Taurus"), # earth +2
-        "mars": sign("Virgo"),   # earth +2  -> earth 4
-        "jupiter": sign("Pisces"),  # water +1 -> water 4
-    }
-    r = assign_theme(chart, requested_theme="auto", book_id="b1")
-    assert r["element_scores"]["earth"] == 4 and r["element_scores"]["water"] == 4
-    assert r["resolved_theme"] == "water"
-    assert r["tie_breaker"] == "moon"
-
-
-def test_tie_broken_by_hash_is_deterministic():
-    chart = {
-        "sun": sign("Aries"),     # fire +3 (not leader)
-        "mercury": sign("Taurus"),# earth +2
-        "venus": sign("Virgo"),   # earth +2 -> earth 4
-        "mars": sign("Scorpio"),  # water +2
-        "jupiter": sign("Pisces"),# water +1
-        "saturn": sign("Cancer"), # water +1 -> water 4
-    }
-    r1 = assign_theme(chart, requested_theme="auto", book_id="stable-xyz", moon_reliable=False)
-    r2 = assign_theme(chart, requested_theme="auto", book_id="stable-xyz", moon_reliable=False)
-    assert r1["resolved_theme"] in ("earth", "water")
-    assert r1["tie_breaker"] == "hash"
+def test_no_sun_sign_hash_fallback_is_deterministic():
+    chart = {"moon": sign("Cancer")}  # no Sun
+    r1 = assign_theme(chart, requested_theme="auto", book_id="seed-42")
+    r2 = assign_theme(chart, requested_theme="auto", book_id="seed-42")
+    assert r1["resolved_theme"] in THEMES
+    assert r1["resolution_reason"] == "hash_fallback"
+    assert "no_sun_sign" in r1["warnings"]
     assert r1["resolved_theme"] == r2["resolved_theme"]
+
+
+def test_hash_fallback_when_empty():
+    r = assign_theme({}, requested_theme="auto", book_id="seed-42")
+    assert r["resolved_theme"] in THEMES
+    assert r["resolution_reason"] == "hash_fallback"
 
 
 def test_ascendant_ignored_when_angles_not_allowed():
@@ -89,31 +88,23 @@ def test_ascendant_ignored_when_angles_not_allowed():
     assert without["air"] == 3
 
 
-def test_ambiguous_moon_not_counted():
+def test_ambiguous_moon_not_counted_in_scores():
     chart = {"sun": sign("Aries"), "moon": sign("Cancer")}
     scores = compute_element_scores(chart, angles_allowed=False, moon_reliable=False)
     assert scores["water"] == 0 and scores["fire"] == 3
 
 
-def test_low_reliability_placement_excluded():
+def test_low_reliability_placement_excluded_from_scores():
     chart = {"sun": {"sign": "Libra", "reliability": "low"}, "moon": sign("Gemini")}
     scores = compute_element_scores(chart, angles_allowed=False)
     assert scores["air"] == 3  # only the moon counts
 
 
-def test_hash_fallback_when_no_data():
-    r = assign_theme({}, requested_theme="auto", book_id="seed-42")
-    assert r["resolved_theme"] in THEMES
-    assert r["resolution_reason"] == "hash_fallback"
-    assert "insufficient_astrology_data" in r["warnings"]
-    # deterministic
-    assert assign_theme({}, requested_theme="auto", book_id="seed-42")["resolved_theme"] == r["resolved_theme"]
-
-
 def test_invalid_requested_theme_falls_back_to_auto():
-    chart = {"sun": sign("Libra"), "moon": sign("Gemini")}
+    chart = {"sun": sign("Libra")}
     r = assign_theme(chart, requested_theme="purple", book_id="b1")
     assert r["resolved_theme"] == "air"
+    assert r["resolution_reason"] == "sun_sign"
     assert any("invalid requested_theme" in w for w in r["warnings"])
 
 
@@ -133,5 +124,11 @@ def test_theme_tokens_complete():
         tok = theme_tokens(name)
         for key in ("cover_background", "content_background", "primary", "text", "pattern", "symbol"):
             assert key in tok
-    # legacy id resolves through tokens
     assert theme_tokens("cosmic_night") == THEME_TOKENS["water"]
+
+
+def test_deterministic_same_input():
+    chart = {"sun": sign("Scorpio")}
+    a = assign_theme(chart, requested_theme="auto", book_id="x")
+    b = assign_theme(chart, requested_theme="auto", book_id="x")
+    assert a == b

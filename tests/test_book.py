@@ -62,3 +62,21 @@ def test_deterministic_same_input():
     b = build_book(CHART, requested_theme="auto", book_id="abc123")
     assert a["resolved_theme"] == b["resolved_theme"]
     assert a["signature_seed"] == b["signature_seed"]
+
+
+def test_auto_theme_matches_sun_sign():
+    # Sun in Gemini (air) via the real placement.
+    book = build_book(CHART, requested_theme="auto", book_id="abc123")
+    assert book["resolved_theme"] == "air"
+    assert book["visual_assignment"]["resolution_reason"] == "sun_sign"
+
+
+def test_theme_from_date_without_astrology():
+    chart = {
+        "subject": {"name": "X", "date": "1996-06-20", "city": "Москва"},
+        "input_hash": "z", "numerology": {"life_path": 6},
+        "saju": {"day_pillar": {"stem": "Bing Fire"}}, "astrology_available": False,
+    }
+    book = build_book(chart, requested_theme="auto", book_id="z")
+    assert book["resolved_theme"] == "air"  # 1996-06-20 -> Gemini -> air
+    assert book["visual_assignment"]["resolution_reason"] == "sun_sign"

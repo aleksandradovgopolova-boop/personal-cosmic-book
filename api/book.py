@@ -119,6 +119,27 @@ def _day_element(chart: Dict[str, Any]) -> Optional[str]:
     return parts[1] if len(parts) > 1 else None
 
 
+# Sun sign depends only on the date (not birth time). Used so the visual theme
+# (chosen from the Sun-sign element) works even without full astrology.
+_SUN_CUTOFFS = [
+    (20, "capricorn"), (19, "aquarius"), (20, "pisces"), (20, "aries"),
+    (21, "taurus"), (21, "gemini"), (22, "cancer"), (23, "leo"),
+    (23, "virgo"), (23, "libra"), (22, "scorpio"), (22, "sagittarius"),
+]
+
+
+def _sun_sign_from_date(date_iso: Any) -> Optional[str]:
+    try:
+        parts = [int(x) for x in str(date_iso).split("-")[:3]]
+        month, day = parts[1], parts[2]
+    except Exception:
+        return None
+    if not 1 <= month <= 12:
+        return None
+    cut_day, sign = _SUN_CUTOFFS[month - 1]
+    return sign if day <= cut_day else _SUN_CUTOFFS[month % 12][1]
+
+
 def _block(paragraphs: List[Optional[str]], heading: Optional[str] = None) -> Optional[Dict[str, Any]]:
     clean = [p for p in paragraphs if p]
     if not clean:
@@ -211,8 +232,16 @@ def build_book(
     time_known = bool((chart.get("subject") or {}).get("time")) and not str((chart.get("subject") or {}).get("birthtime_status") or "").lower() == "unknown"
     angles_allowed = bool(chart.get("astrology_available")) and isinstance(chart.get("asc"), dict) and time_known
 
+    # The theme is chosen from the Sun-sign element, which depends only on the
+    # date. Ensure the Sun sign is present even when full astrology is missing.
+    theme_chart = chart
+    if not (isinstance(chart.get("sun"), dict) and chart["sun"].get("sign")):
+        sun_sign = _sun_sign_from_date((chart.get("subject") or {}).get("date"))
+        if sun_sign:
+            theme_chart = {**chart, "sun": {"sign": sun_sign}}
+
     visual = assign_theme(
-        chart,
+        theme_chart,
         requested_theme=requested_theme,
         book_id=book_id,
         angles_allowed=angles_allowed,
