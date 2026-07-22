@@ -1,4 +1,5 @@
-from api.book import DISCLAIMER, SECTION_IDS, build_book
+import api.book as bk
+from api.book import DISCLAIMER, SECTION_IDS, SECTIONS, build_book, generate_book
 from api.theme import THEMES
 
 EXPECTED_IDS = [
@@ -80,3 +81,42 @@ def test_theme_from_date_without_astrology():
     book = build_book(chart, requested_theme="auto", book_id="z")
     assert book["resolved_theme"] == "air"  # 1996-06-20 -> Gemini -> air
     assert book["visual_assignment"]["resolution_reason"] == "sun_sign"
+
+
+def test_two_stage_generation_uses_patterns(monkeypatch):
+    fake_patterns = {
+        "patterns": [{"id": f"p{i}", "thesis": f"тезис {i}"} for i in range(1, 5)],
+        "synthesis": {"central_tension": "..."},
+    }
+    fake_sections = {"sections": [
+        {"id": s["id"], "title": s["title"], "blocks": [{"paragraphs": [f"Абзац про {s['id']}"]}]}
+        for s in SECTIONS
+    ]}
+
+    def fake_chat(system, user, **kwargs):
+        return fake_patterns if "аналитический" in system else fake_sections
+
+    monkeypatch.setattr(bk, "_deepseek_chat", fake_chat)
+    book = generate_book(CHART, requested_theme="auto", book_id="abc123")
+    assert book["generated_with"] == "deepseek-2stage"
+    assert [s["id"] for s in book["sections"]] == EXPECTED_IDS
+    assert "patterns" in book and len(book["patterns"]["patterns"]) == 4
+    assert book["sections"][0]["blocks"][0]["paragraphs"][0].startswith("Абзац про")
+
+
+def test_two_stage_falls_back_to_template_when_stage2_fails(monkeypatch):
+    monkeypatch.setattr(bk, "_deepseek_chat", lambda system, user, **kw: None)
+    book = generate_book(CHART, requested_theme="auto", book_id="abc123")
+    assert book["generated_with"] == "template"
+    assert len(book["sections"]) == 10
+
+
+def test_stage2_rejects_too_few_patterns(monkeypatch):
+    # Stage 2 returns only 2 patterns -> invalid -> template fallback.
+    def fake_chat(system, user, **kwargs):
+        if "аналитический" in system:
+            return {"patterns": [{"id": "p1", "thesis": "t"}, {"id": "p2", "thesis": "t"}]}
+        return {"sections": []}
+    monkeypatch.setattr(bk, "_deepseek_chat", fake_chat)
+    book = generate_book(CHART, requested_theme="auto", book_id="abc123")
+    assert book["generated_with"] == "template"

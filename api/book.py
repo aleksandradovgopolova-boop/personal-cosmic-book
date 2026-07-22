@@ -266,15 +266,58 @@ def build_book(
     }
 
 
-# ── DeepSeek generation (analytics only — never gets theme/design data) ──
-DEEPSEEK_SYSTEM = (
+# ── DeepSeek generation, two stages (analytics only — never gets theme/design) ──
+# Stage 2: synthesize a small set of verifiable personality patterns.
+STAGE2_SYSTEM = (
+    "Ты — аналитический модуль продукта «Книга о тебе». Преврати факты карты в "
+    "ограниченный набор проверяемых гипотез о повторяющихся паттернах. Ты НЕ "
+    "пишешь книгу и не выдумываешь факты. Выдели 4–7 различающихся паттернов; "
+    "каждый объясняет внутренний механизм, триггер, сильную сторону, риск и "
+    "минимум два жизненных домена. Проявления — как вероятности («может "
+    "проявляться»), без предсказаний, без диагнозов, без пустых комплиментов. "
+    "Запрещены: «предначертано», «судьба решила», «точно будет», «гарантирует», "
+    "«диагноз», «научно доказано», «звёзды говорят». Верни только JSON."
+)
+
+# Stage 4: write the sections, grounded in the stage-2 patterns.
+STAGE4_SYSTEM = (
     "Ты — автор персональной цифровой книги «Книга о тебе»: тёплый, взрослый и "
     "конкретный текст самопознания на русском. Это не гороскоп, не диагноз и не "
-    "предсказание. Обращайся на «ты». Каждый блок: внутренний механизм, вероятное "
+    "предсказание. Обращайся на «ты». Пиши строго по переданным паттернам, не "
+    "добавляя новых фактов. Каждый блок: внутренний механизм, вероятное "
     "проявление, ресурс, риск и мягкий практический вывод — как гипотезы, а не "
     "биография. Не пересказывай отдельно астрологию, нумерологию и саджу: пиши о "
-    "человеке. Одну мысль раскрывай один раз, без повторов между разделами."
+    "человеке. Один тезис раскрывается в одном разделе; в других — только краткая "
+    "связь. Не начинай каждый раздел с общего описания личности."
 )
+
+
+def _deepseek_chat(system: str, user: str, *, max_tokens: int, temperature: float) -> Optional[Dict[str, Any]]:
+    """One DeepSeek chat call in JSON mode. Returns parsed JSON or None."""
+    api_key = os.environ.get("DEEPSEEK_API_KEY")
+    if not api_key:
+        return None
+    base_url = os.environ.get("DEEPSEEK_BASE_URL", "https://api.deepseek.com").rstrip("/")
+    model = os.environ.get("DEEPSEEK_MODEL", "deepseek-chat")
+    body = json.dumps({
+        "model": model,
+        "messages": [{"role": "system", "content": system}, {"role": "user", "content": user}],
+        "temperature": temperature,
+        "response_format": {"type": "json_object"},
+        "max_tokens": max_tokens,
+    }).encode("utf-8")
+    request = urllib.request.Request(
+        f"{base_url}/chat/completions",
+        data=body,
+        headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
+        method="POST",
+    )
+    try:
+        with urllib.request.urlopen(request, context=ssl.create_default_context(), timeout=120) as response:
+            data = json.load(response)
+        return json.loads(data["choices"][0]["message"]["content"])
+    except Exception:
+        return None
 
 
 def _chart_facts(chart: Dict[str, Any]) -> str:
@@ -296,81 +339,81 @@ def _chart_facts(chart: Dict[str, Any]) -> str:
     return "\n".join(lines)
 
 
-def _generate_sections_with_deepseek(chart: Dict[str, Any]) -> Optional[List[Dict[str, Any]]]:
-    api_key = os.environ.get("DEEPSEEK_API_KEY")
-    if not api_key:
+def _generate_patterns(chart: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    """Stage 2: synthesize 4–7 personality patterns from the chart facts."""
+    user = (
+        "<facts>\n" + _chart_facts(chart) + "\n</facts>\n\n"
+        "Синтезируй 4–7 паттернов личности и верни строго JSON:\n"
+        '{"patterns":[{"id":"snake_case","title":"...","pattern_type":"reinforcing|polarity",'
+        '"thesis":"одно предложение","mechanism":"...","likely_manifestations":["..."],'
+        '"strengths":["..."],"risks":["..."],"triggers":["..."],'
+        '"domains":["identity|emotions|relationships|work|money|growth"]}],'
+        '"synthesis":{"central_tension":"...","core_resource":"...","growth_direction":"..."}}'
+    )
+    data = _deepseek_chat(STAGE2_SYSTEM, user, max_tokens=2500, temperature=0.3)
+    if not data or not isinstance(data.get("patterns"), list):
         return None
-    base_url = os.environ.get("DEEPSEEK_BASE_URL", "https://api.deepseek.com").rstrip("/")
-    model = os.environ.get("DEEPSEEK_MODEL", "deepseek-chat")
+    patterns = [p for p in data["patterns"] if isinstance(p, dict) and p.get("thesis")]
+    if not 4 <= len(patterns) <= 7:
+        return None
+    data["patterns"] = patterns
+    return data
 
+
+def _generate_sections(chart: Dict[str, Any], patterns: Dict[str, Any]) -> Optional[List[Dict[str, Any]]]:
+    """Stage 4: write the 10 sections, grounded in the stage-2 patterns."""
     section_list = "\n".join(f'{s["id"]} — {s["title"]}' for s in SECTIONS)
-    user_content = (
-        "Данные человека (только как основание, не пересказывай их списком):\n"
-        + _chart_facts(chart) + "\n\n"
-        "Напиши книгу ровно из этих 10 разделов, сохраняя id, названия и порядок:\n"
-        + section_list + "\n\n"
-        "Разделы 1–9 по 450–750 слов, раздел 10 — 800–1200 слов с 5 инсайтами, "
-        "планом на 30 дней, первым шагом на 24 часа и письмом себе.\n"
+    user = (
+        "<facts>\n" + _chart_facts(chart) + "\n</facts>\n\n"
+        "<patterns>\n" + json.dumps(patterns, ensure_ascii=False) + "\n</patterns>\n\n"
+        "Напиши книгу ровно из этих 10 разделов, сохраняя id, названия и порядок, "
+        "опираясь на паттерны выше (не выдумывай новых фактов):\n" + section_list + "\n\n"
+        "Один тезис раскрывается в одном разделе, без повторов. Разделы 1–9 по "
+        "450–750 слов; раздел 10 — 800–1200 слов с 5 инсайтами, планом на 30 дней, "
+        "первым шагом на 24 часа и письмом себе.\n"
         "Верни строго JSON: "
         '{"sections":[{"id":"01_main_theme","title":"...","eyebrow":"...",'
         '"opening":"...","blocks":[{"heading":"...","paragraphs":["...","..."]}],'
         '"reflection":{"title":"...","text":"..."}}]} без markdown.'
     )
-
-    body = json.dumps({
-        "model": model,
-        "messages": [
-            {"role": "system", "content": DEEPSEEK_SYSTEM},
-            {"role": "user", "content": user_content},
-        ],
-        "temperature": 0.6,
-        "response_format": {"type": "json_object"},
-        "max_tokens": 8000,
-    }).encode("utf-8")
-
-    request = urllib.request.Request(
-        f"{base_url}/chat/completions",
-        data=body,
-        headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
-        method="POST",
-    )
-    try:
-        with urllib.request.urlopen(request, context=ssl.create_default_context(), timeout=120) as response:
-            data = json.load(response)
-        parsed = json.loads(data["choices"][0]["message"]["content"])
-        raw = parsed.get("sections")
-        if not isinstance(raw, list):
-            return None
-        by_id = {str(item.get("id")): item for item in raw if isinstance(item, dict)}
-        sections = []
-        for meta in SECTIONS:  # enforce exactly 10 in canonical order
-            item = by_id.get(meta["id"], {})
-            blocks = []
-            for b in (item.get("blocks") or []):
-                paras = [str(p).strip() for p in (b.get("paragraphs") or []) if str(p).strip()]
-                if paras:
-                    block = {"paragraphs": paras}
-                    if b.get("heading"):
-                        block["heading"] = str(b["heading"]).strip()
-                    blocks.append(block)
-            if not blocks:
-                return None  # incomplete generation -> fall back to template
-            section = {"id": meta["id"], "title": item.get("title") or meta["title"], "blocks": blocks}
-            if item.get("eyebrow"):
-                section["eyebrow"] = str(item["eyebrow"]).strip()
-            if item.get("opening"):
-                section["opening"] = str(item["opening"]).strip()
-            if isinstance(item.get("reflection"), dict) and item["reflection"].get("text"):
-                section["reflection"] = {"title": item["reflection"].get("title") or "Вопрос к себе", "text": str(item["reflection"]["text"]).strip()}
-            sections.append(section)
-        return sections
-    except Exception:
+    parsed = _deepseek_chat(STAGE4_SYSTEM, user, max_tokens=8000, temperature=0.6)
+    if not parsed or not isinstance(parsed.get("sections"), list):
         return None
+    by_id = {str(item.get("id")): item for item in parsed["sections"] if isinstance(item, dict)}
+    sections = []
+    for meta in SECTIONS:  # enforce exactly 10 in canonical order
+        item = by_id.get(meta["id"], {})
+        blocks = []
+        for b in (item.get("blocks") or []):
+            paras = [str(p).strip() for p in (b.get("paragraphs") or []) if str(p).strip()]
+            if paras:
+                block = {"paragraphs": paras}
+                if b.get("heading"):
+                    block["heading"] = str(b["heading"]).strip()
+                blocks.append(block)
+        if not blocks:
+            return None  # incomplete generation -> fall back to template
+        section = {"id": meta["id"], "title": item.get("title") or meta["title"], "blocks": blocks}
+        if item.get("eyebrow"):
+            section["eyebrow"] = str(item["eyebrow"]).strip()
+        if item.get("opening"):
+            section["opening"] = str(item["opening"]).strip()
+        if isinstance(item.get("reflection"), dict) and item["reflection"].get("text"):
+            section["reflection"] = {"title": item["reflection"].get("title") or "Вопрос к себе", "text": str(item["reflection"]["text"]).strip()}
+        sections.append(section)
+    return sections
 
 
 def generate_book(chart: Dict[str, Any], *, requested_theme: str = "auto", book_id: str = "") -> Dict[str, Any]:
-    sections = _generate_sections_with_deepseek(chart)
-    return build_book(chart, requested_theme=requested_theme, book_id=book_id, sections=sections)
+    """Two-stage generation: stage 2 patterns -> stage 4 sections, else template."""
+    patterns = _generate_patterns(chart)                          # stage 2
+    sections = _generate_sections(chart, patterns) if patterns else None  # stage 4
+    book = build_book(chart, requested_theme=requested_theme, book_id=book_id, sections=sections)
+    if patterns:
+        book["patterns"] = patterns  # analytics/debug only; not exposed to the renderer theme
+        if sections:
+            book["generated_with"] = "deepseek-2stage"
+    return book
 
 
 def book_from_payload(payload: Dict[str, Any]) -> Dict[str, Any]:
