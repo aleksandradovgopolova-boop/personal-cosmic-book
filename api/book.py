@@ -11,9 +11,11 @@ from typing import Any, Dict, List, Optional
 try:
     from .chart import chart_from_payload
     from .theme import assign_theme, theme_tokens, THEME_LABELS
+    from .store import save_book
 except Exception:  # pragma: no cover - allow running as a script
     from chart import chart_from_payload
     from theme import assign_theme, theme_tokens, THEME_LABELS
+    from store import save_book
 
 
 # The 10 sections of the book (book-structure-10-sections.md). Cover, table of
@@ -422,6 +424,7 @@ def book_from_payload(payload: Dict[str, Any]) -> Dict[str, Any]:
     requested_theme = payload.get("requested_theme") or presentation.get("requested_theme") or "auto"
     book_id = payload.get("book_id") or str(chart.get("input_hash") or "")[:16]
     book = generate_book(chart, requested_theme=requested_theme, book_id=book_id)
+    save_book(book)  # best-effort persistence (no-op without Supabase)
     book["chart"] = chart
     return book
 

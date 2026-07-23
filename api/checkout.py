@@ -9,6 +9,11 @@ import uuid
 from http.server import BaseHTTPRequestHandler
 from typing import Any, Dict, Optional
 
+try:
+    from .store import save_order
+except Exception:  # pragma: no cover - allow running as a script
+    from store import save_order
+
 
 # Product catalogue (mirrors lib/products.ts). Amounts are in whole rubles.
 PRODUCTS = {
@@ -38,6 +43,8 @@ def create_checkout(payload: Dict[str, Any]) -> Dict[str, Any]:
     # No payment credentials configured — return a demo confirmation so the flow
     # is fully exercisable without a live provider.
     if not shop_id or not secret_key:
+        save_order(email=email, product=product_id, amount=product["amount"], status="demo",
+                   input_data=payload.get("input_data") or {})
         return {
             "status": "demo",
             "product": product_id,
@@ -56,6 +63,8 @@ def create_checkout(payload: Dict[str, Any]) -> Dict[str, Any]:
     )
 
     confirmation = payment.get("confirmation") or {}
+    save_order(email=email, product=product_id, amount=product["amount"],
+               status=payment.get("status", "pending"), input_data=payload.get("input_data") or {})
     return {
         "status": payment.get("status", "pending"),
         "product": product_id,
