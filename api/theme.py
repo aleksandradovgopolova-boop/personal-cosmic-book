@@ -171,27 +171,41 @@ def assign_theme(
     return result
 
 
-# ── Immutable design tokens (design-system-elements-v2.md) ──
+# ── Immutable design tokens (design-system-elements-v2, dark edition) ──
+# One premium dark layout, four elemental palettes. ``content_background`` is
+# the page background (dark); ``cover_background`` is the radial-glow centre of
+# the cover. ``surface``/``surface2`` build card gradients, ``accent``/``accent2``
+# are the tertiary/quaternary accents, ``dim`` is muted body text and ``line``
+# is the hairline colour. Legacy keys (cover_text, primary, secondary, text,
+# metal, pattern, symbol) are preserved for the renderer and tests.
 THEME_TOKENS = {
     "earth": {
-        "cover_background": "#293029", "cover_text": "#F7F0E3", "content_background": "#F7F1E7",
-        "primary": "#66704F", "secondary": "#A66A4A", "text": "#2F2B26",
-        "metal": "#B9975B", "pattern": "strata", "symbol": "earth",
+        "content_background": "#0A0B07", "cover_background": "#1A1C10", "cover_text": "#F1ECE0",
+        "surface": "#181A12", "surface2": "#20231A",
+        "primary": "#CDB079", "secondary": "#B07C52", "accent": "#8FA06A", "accent2": "#C6924F",
+        "text": "#F1ECE0", "dim": "rgba(241,236,224,0.70)", "line": "rgba(205,176,121,0.18)",
+        "metal": "#CDB079", "pattern": "strata", "symbol": "earth",
     },
     "water": {
-        "cover_background": "#102A3A", "cover_text": "#F2F7F8", "content_background": "#F4F8FA",
-        "primary": "#3E748D", "secondary": "#7B9FAE", "text": "#24313A",
-        "metal": "#AABBC4", "pattern": "ripples", "symbol": "water",
+        "content_background": "#080B0F", "cover_background": "#0D1624", "cover_text": "#EAE6F0",
+        "surface": "#141820", "surface2": "#1C2230",
+        "primary": "#C8D4E8", "secondary": "#7BA7D4", "accent": "#6ECFCB", "accent2": "#E8C87A",
+        "text": "#EAE6F0", "dim": "rgba(234,230,240,0.70)", "line": "rgba(200,212,232,0.16)",
+        "metal": "#7BA7D4", "pattern": "ripples", "symbol": "water",
     },
     "air": {
-        "cover_background": "#DDE8ED", "cover_text": "#263741", "content_background": "#FAFCFD",
-        "primary": "#507A8B", "secondary": "#8AA7B3", "text": "#27343B",
-        "metal": "#9EADB4", "pattern": "currents", "symbol": "air",
+        "content_background": "#090A0E", "cover_background": "#121522", "cover_text": "#EEF0F4",
+        "surface": "#14161F", "surface2": "#1B1E2A",
+        "primary": "#CBD3E6", "secondary": "#9AB8D4", "accent": "#E6E0D2", "accent2": "#B4A9E0",
+        "text": "#EEF0F4", "dim": "rgba(238,240,244,0.70)", "line": "rgba(154,184,212,0.16)",
+        "metal": "#9AB8D4", "pattern": "currents", "symbol": "air",
     },
     "fire": {
-        "cover_background": "#3A201D", "cover_text": "#FFF4E8", "content_background": "#FFF7EF",
-        "primary": "#A94E37", "secondary": "#C8873F", "text": "#342622",
-        "metal": "#C19B61", "pattern": "rays", "symbol": "fire",
+        "content_background": "#0D0908", "cover_background": "#24100C", "cover_text": "#F2E9E2",
+        "surface": "#1A1210", "surface2": "#231816",
+        "primary": "#E0A85A", "secondary": "#C85A4A", "accent": "#C4876A", "accent2": "#D98A5A",
+        "text": "#F2E9E2", "dim": "rgba(242,233,226,0.70)", "line": "rgba(224,168,90,0.18)",
+        "metal": "#E0A85A", "pattern": "rays", "symbol": "fire",
     },
 }
 

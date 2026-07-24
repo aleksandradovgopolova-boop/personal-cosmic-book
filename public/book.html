@@ -8,110 +8,165 @@
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet" />
   <style>
     *, *::before, *::after { box-sizing: border-box; }
+    /* Defaults = water (dark). Overridden per book by applyTheme(). */
     :root {
-      --cover-bg: #102A3A; --cover-text: #F2F7F8; --content-bg: #F4F8FA;
-      --primary: #3E748D; --secondary: #7B9FAE; --text: #24313A; --metal: #AABBC4;
+      --bg0: #080B0F; --bg-mid: #141820; --bg-light: #1C2230;
+      --c1: #C8D4E8; --c2: #7BA7D4; --c3: #6ECFCB; --c4: #E8C87A;
+      --text: #EAE6F0; --dim: rgba(234,230,240,0.70); --line: rgba(200,212,232,0.16);
+      --cover: #0D1624; --cover-text: #EAE6F0;
     }
     html, body { margin: 0; }
     body {
-      font-family: Jost, system-ui, sans-serif; font-weight: 300; line-height: 1.75;
-      color: var(--text); background: var(--content-bg);
+      font-family: Jost, system-ui, sans-serif; font-weight: 300; line-height: 1.78;
+      color: var(--text); background: var(--bg0); overflow-x: hidden;
     }
-    .wrap { max-width: 720px; margin: 0 auto; padding: 0 1.4rem 5rem; }
+    h1, h2, h3, h4 { font-family: "Cormorant Garamond", serif; font-weight: 400; }
+    p { margin: 0 0 1rem; }
 
-    /* Cover (dark allowed) */
+    /* COVER */
     .cover {
-      background: var(--cover-bg); color: var(--cover-text);
-      margin: 0 calc(50% - 50vw); padding: clamp(3.5rem, 9vw, 6rem) 1.4rem;
-      text-align: center;
+      min-height: 100vh; display: flex; flex-direction: column; align-items: center;
+      justify-content: center; text-align: center; position: relative; overflow: hidden;
+      padding: 60px 20px;
+      background: radial-gradient(ellipse 90% 70% at 50% 36%, var(--cover) 0%, var(--bg0) 62%);
     }
-    .cover-inner { max-width: 720px; margin: 0 auto; }
-    .cover .symbol { width: 54px; height: 54px; margin: 0 auto 1.6rem; opacity: .9; }
-    .cover .brand { letter-spacing: .32em; text-transform: uppercase; font-size: .72rem; opacity: .75; margin-bottom: 1.4rem; }
-    .cover h1 { font-family: "Cormorant Garamond", serif; font-weight: 500; font-size: clamp(2.6rem, 8vw, 4.4rem); line-height: 1.04; margin: 0 0 .8rem; }
-    .cover .subtitle { font-family: "Cormorant Garamond", serif; font-style: italic; font-size: 1.3rem; opacity: .85; margin: 0 0 1.4rem; }
-    .cover .meta { font-size: .9rem; opacity: .7; margin-bottom: 1.4rem; }
-    .cover .tags { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
-    .cover .tags span { font-size: .8rem; padding: 5px 12px; border: 1px solid rgba(255,255,255,.25); border-radius: 999px; }
+    .cover-bg { position: absolute; inset: 0; pointer-events: none; }
+    .cover-emblem { width: 170px; height: 170px; margin: 0 auto 44px; position: relative; }
+    .cover .brand { font-size: 11px; letter-spacing: .45em; text-transform: uppercase; color: var(--c1); opacity: .5; margin-bottom: 24px; }
+    .cover h1 {
+      font-weight: 300; font-size: clamp(56px, 11vw, 108px); line-height: 1; letter-spacing: .05em; margin: 0 0 14px;
+      background: linear-gradient(130deg, var(--c1) 0%, var(--cover-text) 34%, var(--c2) 72%, var(--c3) 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .cover .meta { font-size: 13px; letter-spacing: .25em; color: var(--c1); opacity: .55; margin-bottom: 32px; }
+    .cover .dline { width: 100px; height: 1px; background: linear-gradient(90deg, transparent, var(--line), transparent); margin: 0 auto 32px; }
+    .cover .subtitle { font-family: "Cormorant Garamond", serif; font-style: italic; font-size: clamp(18px, 3vw, 25px); color: var(--c1); opacity: .85; max-width: 620px; line-height: 1.55; margin: 0 auto 28px; }
+    .cover .tags { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
+    .cover .tags span { font-size: 12px; letter-spacing: .08em; padding: 5px 15px; border: 1px solid var(--c1); border-radius: 30px; color: var(--c1); }
 
-    /* Table of contents */
-    .toc { padding: 2.6rem 0 1rem; border-bottom: 1px solid rgba(0,0,0,.08); }
-    .toc p.h { font-size: .72rem; letter-spacing: .22em; text-transform: uppercase; color: var(--primary); margin: 0 0 1rem; }
-    .toc ol { margin: 0; padding: 0; list-style: none; counter-reset: toc; }
-    .toc li { counter-increment: toc; padding: .35rem 0; display: flex; gap: .8rem; }
-    .toc li::before { content: counter(toc, decimal-leading-zero); color: var(--metal); font-variant-numeric: tabular-nums; }
-    .toc a { color: var(--text); text-decoration: none; }
-    .toc a:hover { color: var(--primary); }
+    .book { max-width: 920px; margin: 0 auto; padding: 0 24px 80px; }
 
-    /* Sections */
-    .section { padding: 2.8rem 0; border-bottom: 1px solid rgba(0,0,0,.08); }
-    .section:last-of-type { border-bottom: none; }
-    .section .eyebrow { font-size: .72rem; letter-spacing: .22em; text-transform: uppercase; color: var(--primary); margin: 0 0 .5rem; }
-    .section h2 { font-family: "Cormorant Garamond", serif; font-weight: 500; font-size: clamp(1.9rem, 5vw, 2.6rem); line-height: 1.1; margin: 0 0 1.1rem; color: var(--text); }
-    .section .opening { font-family: "Cormorant Garamond", serif; font-style: italic; font-size: 1.25rem; color: var(--primary); margin: 0 0 1.4rem; }
-    .section .block { margin-bottom: 1.4rem; }
-    .section .block h3 { font-size: 1.02rem; font-weight: 500; color: var(--primary); margin: 0 0 .6rem; }
-    .section p { margin: 0 0 1rem; font-size: 1.06rem; }
-    .section .block p:last-child { margin-bottom: 0; }
-    .reflection { margin-top: 1.6rem; padding: 1.2rem 1.4rem; border-left: 3px solid var(--secondary); background: rgba(0,0,0,.03); border-radius: 0 10px 10px 0; }
-    .reflection .t { font-size: .8rem; letter-spacing: .12em; text-transform: uppercase; color: var(--primary); margin: 0 0 .4rem; }
-    .reflection .x { margin: 0; font-style: italic; }
+    /* TABLE OF CONTENTS */
+    .toc { max-width: 680px; margin: 46px auto 8px; border: 1px solid var(--line); border-radius: 18px; padding: 30px 40px; background: linear-gradient(140deg, var(--bg-mid), var(--bg-light)); }
+    .toc .h { font-size: 13px; letter-spacing: .35em; text-transform: uppercase; color: var(--c1); opacity: .55; text-align: center; margin: 0 0 20px; }
+    .toc a { display: flex; align-items: baseline; gap: 14px; padding: 9px 0; border-bottom: 1px solid var(--line); color: var(--text); text-decoration: none; font-size: 15px; }
+    .toc a:last-child { border-bottom: none; }
+    .toc a:hover { color: var(--c1); }
+    .toc .n { font-size: 16px; color: var(--c1); opacity: .5; min-width: 26px; font-family: "Cormorant Garamond", serif; }
 
-    .foot { text-align: center; color: var(--secondary); font-size: .82rem; margin-top: 3rem; line-height: 1.6; }
+    /* CHAPTER */
+    .ch { display: flex; align-items: center; gap: 18px; padding-top: 80px; margin-bottom: 30px; }
+    .ch .num { font-size: 64px; color: var(--c1); opacity: .12; line-height: 1; min-width: 58px; }
+    .ch .eyebrow { font-size: 10px; letter-spacing: .42em; text-transform: uppercase; color: var(--c1); opacity: .45; margin-bottom: 5px; }
+    .ch h2 { font-size: clamp(26px, 4vw, 40px); color: var(--text); line-height: 1.2; margin: 0; }
+    hr.cl { border: none; border-top: 1px solid var(--line); margin: 0 0 32px; }
 
-    .state { text-align: center; padding: 5rem 1rem; color: var(--secondary); }
-    .state h1 { font-family: "Cormorant Garamond", serif; color: var(--text); font-weight: 500; }
-    .spinner { width: 26px; height: 26px; margin: 0 auto 18px; border: 2px solid rgba(0,0,0,.12); border-top-color: var(--primary); border-radius: 50%; animation: spin .8s linear infinite; }
+    .lead { font-family: "Cormorant Garamond", serif; font-style: italic; font-size: clamp(19px, 3vw, 24px); color: var(--c1); opacity: .92; line-height: 1.55; margin: 0 0 22px; }
+
+    /* CARD */
+    .card { background: linear-gradient(140deg, var(--bg-mid) 0%, var(--bg-light) 100%); border: 1px solid var(--line); border-radius: 18px; padding: 30px 32px; margin-bottom: 20px; position: relative; overflow: hidden; }
+    .card::after { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, var(--c1), transparent); opacity: .35; }
+    .card h3 { font-size: 22px; color: var(--c1); margin: 0 0 12px; }
+    .card p { font-size: 15px; line-height: 1.82; color: var(--dim); }
+    .card p:last-child { margin-bottom: 0; }
+
+    /* REFLECTION → accent quote */
+    .reflection { border-left: 2px solid var(--c2); padding: 4px 0 4px 22px; margin: 22px 0 6px; }
+    .reflection .t { font-size: 10px; letter-spacing: .3em; text-transform: uppercase; color: var(--c1); opacity: .5; margin: 0 0 8px; }
+    .reflection .x { font-family: "Cormorant Garamond", serif; font-style: italic; font-size: 19px; color: var(--text); opacity: .92; line-height: 1.55; margin: 0; }
+
+    /* FOOTER / DISCLAIMER */
+    .foot { text-align: center; padding: 56px 20px 20px; border-top: 1px solid var(--line); margin-top: 66px; }
+    .foot .brand { font-size: 13px; letter-spacing: .3em; text-transform: uppercase; color: var(--c1); opacity: .45; margin-bottom: 16px; }
+    .foot .disc { font-size: 12px; color: var(--dim); opacity: .75; max-width: 620px; margin: 0 auto; line-height: 1.7; }
+
+    /* STATES */
+    .state { text-align: center; padding: 6rem 1rem; color: var(--dim); min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+    .state h1 { font-family: "Cormorant Garamond", serif; color: var(--text); font-weight: 400; font-size: 2rem; }
+    .spinner { width: 26px; height: 26px; margin: 0 auto 18px; border: 2px solid var(--line); border-top-color: var(--c1); border-radius: 50%; animation: spin .8s linear infinite; }
     @keyframes spin { to { transform: rotate(360deg); } }
-    a.home { color: var(--primary); }
+    a.home { color: var(--c1); }
 
-    @media print { .cover { margin: 0; } a { text-decoration: none; } }
+    @media (max-width: 768px) { .card { padding: 24px 18px; } .ch .num { font-size: 48px; } .toc { padding: 26px 22px; } }
+    @media print { .cover { min-height: auto; } a { text-decoration: none; } }
   </style>
 </head>
 <body>
   <div id="root">
-    <div class="wrap"><div class="state"><div class="spinner"></div><p>Готовим твою книгу…</p></div></div>
+    <div class="state"><div class="spinner"></div><p>Готовим твою книгу…</p></div>
   </div>
 
   <script>
-    var SYMBOLS = {
-      earth: '<svg class="symbol" viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M6 26c4-3 10-3 14 0s10 3 14 0"/><path d="M6 20c4-3 10-3 14 0s10 3 14 0"/><path d="M6 14c4-3 10-3 14 0s10 3 14 0"/></svg>',
-      water: '<svg class="symbol" viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="20" cy="20" r="4"/><circle cx="20" cy="20" r="10"/><circle cx="20" cy="20" r="16"/></svg>',
-      air: '<svg class="symbol" viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M6 15h20a4 4 0 1 0-4-4"/><path d="M6 22h24a4 4 0 1 1-4 4"/><path d="M6 29h14"/></svg>',
-      fire: '<svg class="symbol" viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M20 4v8M20 28v8M4 20h8M28 20h8M9 9l5 5M26 26l5 5M31 9l-5 5M14 26l-5 5"/><circle cx="20" cy="20" r="4"/></svg>'
-    };
+    // Static starfield + orbital emblem shared by every cover; colours come from CSS vars.
+    var COVER_BG =
+      '<svg class="cover-bg" viewBox="0 0 1400 900" preserveAspectRatio="xMidYMid slice">' +
+        '<g fill="white">' +
+          '<circle cx="120" cy="80" r="0.8" opacity="0.5"/><circle cx="300" cy="140" r="0.6" opacity="0.5"/><circle cx="520" cy="60" r="1" opacity="0.6"/>' +
+          '<circle cx="740" cy="120" r="0.6" opacity="0.5"/><circle cx="960" cy="70" r="0.9" opacity="0.6"/><circle cx="1180" cy="130" r="0.7" opacity="0.5"/>' +
+          '<circle cx="200" cy="260" r="0.7" opacity="0.5"/><circle cx="440" cy="300" r="0.5" opacity="0.4"/><circle cx="680" cy="240" r="0.9" opacity="0.6"/>' +
+          '<circle cx="900" cy="290" r="0.6" opacity="0.5"/><circle cx="1120" cy="250" r="0.8" opacity="0.5"/><circle cx="80" cy="420" r="0.6" opacity="0.5"/>' +
+          '<circle cx="360" cy="460" r="0.9" opacity="0.6"/><circle cx="600" cy="410" r="0.5" opacity="0.4"/><circle cx="840" cy="450" r="0.7" opacity="0.5"/>' +
+          '<circle cx="1060" cy="400" r="0.6" opacity="0.5"/><circle cx="1280" cy="440" r="0.8" opacity="0.5"/><circle cx="160" cy="600" r="0.7" opacity="0.5"/>' +
+          '<circle cx="420" cy="640" r="0.5" opacity="0.4"/><circle cx="700" cy="590" r="0.9" opacity="0.6"/><circle cx="980" cy="650" r="0.6" opacity="0.5"/><circle cx="1220" cy="600" r="0.7" opacity="0.5"/>' +
+        '</g>' +
+        '<g stroke="var(--c2)" stroke-width="0.5" fill="none" opacity="0.5"><line x1="520" y1="60" x2="740" y2="120"/><line x1="740" y1="120" x2="960" y2="70"/></g>' +
+        '<circle cx="700" cy="420" r="300" fill="none" stroke="var(--c2)" stroke-width="60" opacity="0.04"/>' +
+      '</svg>';
+
+    var EMBLEM =
+      '<div class="cover-emblem"><svg viewBox="0 0 170 170">' +
+        '<circle cx="85" cy="85" r="76" fill="none" stroke="var(--c1)" stroke-width="0.7" opacity="0.25"/>' +
+        '<ellipse cx="85" cy="85" rx="60" ry="22" fill="none" stroke="var(--c2)" stroke-width="0.8" opacity="0.5" transform="rotate(-25 85 85)"/>' +
+        '<ellipse cx="85" cy="85" rx="42" ry="15" fill="none" stroke="var(--c3)" stroke-width="0.8" opacity="0.5" transform="rotate(20 85 85)"/>' +
+        '<ellipse cx="85" cy="85" rx="27" ry="10" fill="none" stroke="var(--c4)" stroke-width="0.8" opacity="0.5" transform="rotate(55 85 85)"/>' +
+        '<circle cx="85" cy="85" r="5" fill="var(--c1)" opacity="0.6"/>' +
+        '<circle cx="85" cy="85" r="10" fill="none" stroke="var(--c1)" stroke-width="1" opacity="0.25"/>' +
+        '<circle r="3" fill="var(--c2)" opacity="0.8" transform="rotate(-25 85 85) translate(60,-22) rotate(25 85 85)"/>' +
+        '<circle r="2.5" fill="var(--c3)" opacity="0.75" transform="rotate(20 85 85) translate(-42,15) rotate(-20 85 85)"/>' +
+        '<circle r="2" fill="var(--c4)" opacity="0.75" transform="rotate(55 85 85) translate(27,10) rotate(-55 85 85)"/>' +
+      '</svg></div>';
 
     function esc(t){ var d=document.createElement("div"); d.textContent=t==null?"":String(t); return d.innerHTML; }
     function fmt(iso){ var p=(iso||"").split("-"); return p.length===3?(p[2]+"."+p[1]+"."+p[0]):(iso||""); }
     function slug(id){ return "s-"+String(id).replace(/[^a-z0-9]/gi,"-"); }
+    function pad(n){ return (n<10?"0":"")+n; }
     function param(n){ return new URLSearchParams(window.location.search).get(n) || ""; }
 
     function applyTheme(tokens){
       if(!tokens) return;
-      var r=document.documentElement.style, map={cover_background:"--cover-bg",cover_text:"--cover-text",content_background:"--content-bg",primary:"--primary",secondary:"--secondary",text:"--text",metal:"--metal"};
+      var r=document.documentElement.style;
+      var map={
+        content_background:"--bg0", surface:"--bg-mid", surface2:"--bg-light",
+        primary:"--c1", secondary:"--c2", accent:"--c3", accent2:"--c4",
+        text:"--text", dim:"--dim", line:"--line",
+        cover_background:"--cover", cover_text:"--cover-text"
+      };
       Object.keys(map).forEach(function(k){ if(tokens[k]) r.setProperty(map[k], tokens[k]); });
     }
 
     function renderBook(book){
       applyTheme(book.theme_tokens);
       var c = book.cover || {};
-      var symbol = SYMBOLS[book.element_symbol] || SYMBOLS.water;
       var tags = (c.tags||[]).map(function(t){ return "<span>"+esc(t)+"</span>"; }).join("");
 
-      var toc = (book.sections||[]).map(function(s){
-        return '<li><a href="#'+slug(s.id)+'">'+esc(s.title)+'</a></li>';
+      var toc = (book.sections||[]).map(function(s, i){
+        return '<a href="#'+slug(s.id)+'"><span class="n">'+pad(i+1)+'</span>'+esc(s.title)+'</a>';
       }).join("");
 
-      var sections = (book.sections||[]).map(function(s){
+      var sections = (book.sections||[]).map(function(s, i){
         var parts = [];
-        if(s.eyebrow) parts.push('<p class="eyebrow">'+esc(s.eyebrow)+'</p>');
-        parts.push('<h2>'+esc(s.title)+'</h2>');
-        if(s.opening) parts.push('<p class="opening">'+esc(s.opening)+'</p>');
+        parts.push(
+          '<div class="ch" id="'+slug(s.id)+'"><div class="num">'+pad(i+1)+'</div><div>'+
+            (s.eyebrow?'<div class="eyebrow">'+esc(s.eyebrow)+'</div>':'')+
+            '<h2>'+esc(s.title)+'</h2>'+
+          '</div></div><hr class="cl">'
+        );
+        if(s.opening) parts.push('<p class="lead">'+esc(s.opening)+'</p>');
         (s.blocks||[]).forEach(function(b){
-          var bp = '<div class="block">';
+          var bp = '<div class="card">';
           if(b.heading) bp += '<h3>'+esc(b.heading)+'</h3>';
           bp += (b.paragraphs||[]).map(function(p){ return "<p>"+esc(p)+"</p>"; }).join("");
           bp += '</div>';
@@ -120,26 +175,28 @@
         if(s.reflection && s.reflection.text){
           parts.push('<div class="reflection"><p class="t">'+esc(s.reflection.title||"Вопрос к себе")+'</p><p class="x">'+esc(s.reflection.text)+'</p></div>');
         }
-        return '<section class="section" id="'+slug(s.id)+'">'+parts.join("")+'</section>';
+        return parts.join("");
       }).join("");
 
       document.getElementById("root").innerHTML =
-        '<header class="cover"><div class="cover-inner">'+symbol+
+        '<header class="cover">'+COVER_BG+EMBLEM+
           '<p class="brand">Personal Cosmic Book</p>'+
           '<h1>'+esc(c.name||"Твоя книга")+'</h1>'+
-          (c.subtitle?'<p class="subtitle">'+esc(c.subtitle)+'</p>':'')+
           '<p class="meta">'+esc(fmt(c.date))+(c.city?" · "+esc(c.city):"")+'</p>'+
+          '<div class="dline"></div>'+
+          (c.subtitle?'<p class="subtitle">'+esc(c.subtitle)+'</p>':'')+
           '<div class="tags">'+tags+'</div>'+
-        '</div></header>'+
-        '<div class="wrap">'+
-          '<nav class="toc"><p class="h">Оглавление</p><ol>'+toc+'</ol></nav>'+
+        '</header>'+
+        '<div class="book">'+
+          '<nav class="toc"><p class="h">Оглавление</p>'+toc+'</nav>'+
           sections+
-          '<p class="foot">'+esc(book.disclaimer||"")+'</p>'+
+          '<div class="foot"><div class="brand">Personal Cosmic Book'+(c.name?" · "+esc(c.name):"")+'</div>'+
+            '<p class="disc">'+esc(book.disclaimer||"")+'</p></div>'+
         '</div>';
       document.title = (c.name?c.name+" — ":"")+"Твоя книга";
     }
 
-    function renderState(html){ document.getElementById("root").innerHTML = '<div class="wrap"><div class="state">'+html+'</div></div>'; }
+    function renderState(html){ document.getElementById("root").innerHTML = '<div class="state">'+html+'</div>'; }
 
     async function load(){
       var payload = { name: param("name")||"Твоя книга", date: param("date"), time: param("time"), city: param("city"), requested_theme: param("theme")||"auto" };
