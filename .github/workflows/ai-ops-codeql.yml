@@ -48,7 +48,7 @@ jobs:
     outputs:
       languages: ${{ steps.detect.outputs.languages }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - id: detect
         name: Языки исходников продукта
         env:
@@ -90,7 +90,7 @@ jobs:
       matrix:
         language: ${{ fromJSON(needs.languages.outputs.languages) }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       # ПРЕДПОЛЁТ: включён ли в репозитории code scanning. Без него analyze падает с
       # configuration-error (выгрузка SARIF некуда идти) и красит PR у дочки, которая его не включала.
       # Спрашиваем у API /code-scanning/alerts: включённый code scanning отвечает 200 (пусть и пустым
