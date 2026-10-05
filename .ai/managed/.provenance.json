@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "package": "ai-first-system",
+  "source": "https://github.com/aleksandradovgopolova-boop/ai-ops-kit.git",
+  "source_identity": {
+    "path": "/Users/sasad/ai-ops-kit",
+    "sha": "38429f984acb",
+    "branch": "main",
+    "tag": null,
+    "is_release": false,
+    "origin": "https://github.com/aleksandradovgopolova-boop/ai-ops-kit.git"
+  },
+  "installed_version": "4.9.3",
+  "installed_at": null,
+  "managed_root": ".ai/managed",
+  "presets": [],
+  "checksums_file": ".checksums.json",
+  "note": "Initial install by ai-ops init."
+}
