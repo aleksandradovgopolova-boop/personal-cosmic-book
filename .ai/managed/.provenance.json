@@ -3,17 +3,17 @@
   "package": "ai-first-system",
   "source": "https://github.com/aleksandradovgopolova-boop/ai-ops-kit.git",
   "source_identity": {
-    "path": "/private/tmp/ai-ops-tag-v4100-20261006",
-    "sha": "593acf28c802",
+    "path": "/private/tmp/ai-ops-tag-v4101-20261006",
+    "sha": "521a39c3246c",
     "branch": "HEAD",
-    "tag": "v4.10.0",
+    "tag": "v4.10.1",
     "is_release": true,
     "origin": "https://github.com/aleksandradovgopolova-boop/ai-ops-kit.git"
   },
-  "installed_version": "4.10.0",
+  "installed_version": "4.10.1",
   "installed_at": null,
   "managed_root": ".ai/managed",
   "presets": [],
   "checksums_file": ".checksums.json",
-  "note": "Updated 4.9.3 -> 4.10.0 by ai-ops CLI."
+  "note": "Updated 4.10.0 -> 4.10.1 by ai-ops CLI."
 }
